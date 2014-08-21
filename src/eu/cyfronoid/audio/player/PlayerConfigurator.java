@@ -1,12 +1,12 @@
 package eu.cyfronoid.audio.player;
 
 import java.awt.Color;
-import java.awt.Image;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
+import javax.swing.ImageIcon;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -19,8 +19,12 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
+import eu.cyfronoid.audio.player.providers.PlayerConfigPropertiesProvider;
+import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Settings;
+import eu.cyfronoid.framework.configuration.ConfigProperties;
+import eu.cyfronoid.gui.about.AboutDialog;
 import eu.cyfronoid.gui.image.TransparentImage;
 
 public class PlayerConfigurator extends AbstractModule {
@@ -30,11 +34,12 @@ public class PlayerConfigurator extends AbstractModule {
     public static final Injector injector = Guice.createInjector(new PlayerConfigurator());
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     public static final Locale LOCALE = new Locale("pl", "PL");
-    public static final Image APPLICATION_ICON = TransparentImage.getTransparentIcon(Icons.APP_ICON.getImage(), Color.white);
+    public static final ImageIcon APPLICATION_ICON = new ImageIcon(TransparentImage.getTransparentIcon(Icons.APP_ICON.getImage(), Color.white));
+    public static final AboutDialog ABOUT_DIALOG = new AboutDialog(APPLICATION_ICON, "", "", Resources.THIRD_PARTY_DEPENDENCIES, "", "");
 
     @Override
     protected void configure() {
-        //bind(ConfigProperties.class).toProvider(ConfigPropertiesProvider.class);
+        bind(ConfigProperties.class).toProvider(PlayerConfigPropertiesProvider.class);
     }
 
     private PlayerConfigurator() {
