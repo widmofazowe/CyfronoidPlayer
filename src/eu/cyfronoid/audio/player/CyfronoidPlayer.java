@@ -1,39 +1,39 @@
 package eu.cyfronoid.audio.player;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLayeredPane;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import eu.cyfronoid.audio.player.component.Loudness;
+import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
+import eu.cyfronoid.audio.player.song.Song;
+import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.gui.action.CommonActionListener;
-
-import javax.swing.JMenuBar;
-import javax.swing.JMenu;
-import javax.swing.JMenuItem;
-import javax.swing.JLayeredPane;
-
-import java.awt.BorderLayout;
-
-import javax.swing.JPanel;
-
-import java.awt.FlowLayout;
-
-import javax.swing.JButton;
 
 public class CyfronoidPlayer extends JFrame {
     private static final long serialVersionUID = -6864245175069172853L;
     private static final Logger logger = Logger.getLogger(CyfronoidPlayer.class);
     private JButton playPauseButton;
+    private MusicPlayer musicPlayer = new MusicPlayer();
 
     /**
      * Launch the application.
@@ -43,9 +43,10 @@ public class CyfronoidPlayer extends JFrame {
             public void run() {
                 try {
                     CyfronoidPlayer window = new CyfronoidPlayer();
+                    window.musicPlayer.setSong(new Song("Nightmare.mp3"));
                     window.setVisible(true);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error(ExceptionHelper.getStackTrace(e));
                 }
             }
         });
@@ -55,6 +56,8 @@ public class CyfronoidPlayer extends JFrame {
      * Create the application.
      */
     public CyfronoidPlayer() {
+        setPreferredSize(new Dimension(750, 400));
+        setMinimumSize(new Dimension(750, 400));
         initialize();
     }
 
@@ -62,7 +65,7 @@ public class CyfronoidPlayer extends JFrame {
      * Initialize the contents of the frame.
      */
     private void initialize() {
-        setBounds(100, 100, 586, 397);
+        setBounds(100, 100, 750, 400);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setIconImage(PlayerConfigurator.APPLICATION_ICON.getImage());
         setTitle(PlayerConfigurator.APP_NAME);
@@ -105,20 +108,27 @@ public class CyfronoidPlayer extends JFrame {
         songPanel.add(previousSongButton);
 
         playPauseButton = createButton(Icons.PLAY_ARROW, getLabelFor(PropertyKey.PLAY));
+        playPauseButton.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                musicPlayer.togglePlay();
+                if(musicPlayer.isPlaying()) {
+                    playPauseButton.setIcon(Icons.PAUSE_ARROW.getImageIcon());
+                } else {
+                    playPauseButton.setIcon(Icons.PLAY_ARROW.getImageIcon());
+                }
+            }
+        });
         songPanel.add(playPauseButton);
 
         JButton nextSongButton = createButton(Icons.RIGHT_ARROW, getLabelFor(PropertyKey.NEXT));
         songPanel.add(nextSongButton);
 
-        addWindowListener(new WindowAdapter() {
+        songPanel.add(new Loudness());
+        songPanel.add(new PlayingProgress());
 
-            @Override
-            public void windowClosing(WindowEvent evt) {
-                logger.debug("Closing application");
-                System.exit(0);
-            }
-
-        });
+        addWindowListener(new PlayerWindowListener());
     }
 
     private JButton createButton(Icons icon, String tooltipKey) {
@@ -136,6 +146,16 @@ public class CyfronoidPlayer extends JFrame {
 
     private String getLabelFor(String propertyKey, Object... arguments) {
         return Resources.PLAYER.get(propertyKey, arguments);
+    }
+
+    private static class PlayerWindowListener extends WindowAdapter {
+
+        @Override
+        public void windowClosing(WindowEvent evt) {
+            logger.debug("Closing application");
+            System.exit(0);
+        }
+
     }
 
 }
