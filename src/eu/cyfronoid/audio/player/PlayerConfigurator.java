@@ -24,7 +24,7 @@ import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Settings;
 import eu.cyfronoid.framework.configuration.ConfigProperties;
-import eu.cyfronoid.gui.about.AboutDialog;
+import eu.cyfronoid.gui.about.SimpleAboutDialog;
 import eu.cyfronoid.gui.image.TransparentImage;
 
 public class PlayerConfigurator extends AbstractModule {
@@ -35,7 +35,7 @@ public class PlayerConfigurator extends AbstractModule {
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     public static final Locale LOCALE = new Locale("pl", "PL");
     public static final ImageIcon APPLICATION_ICON = new ImageIcon(TransparentImage.getTransparentIcon(Icons.APP_ICON.getImage(), Color.white));
-    public static final AboutDialog ABOUT_DIALOG = new AboutDialog(APPLICATION_ICON, "", "", Resources.THIRD_PARTY_DEPENDENCIES, "", "");
+    public static final SimpleAboutDialog ABOUT_DIALOG = new SimpleAboutDialog(APPLICATION_ICON, "", "", Resources.THIRD_PARTY_DEPENDENCIES, "", "");
 
     @Override
     protected void configure() {
