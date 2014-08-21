@@ -29,6 +29,9 @@ public class MusicPlayer {
 
     public void setSong(Song song) {
         actualSong = song;
+        if(playbackThread != null && playbackThread.isAlive()) {
+            playbackThread.terminate();
+        }
         playbackThread = null;
     }
 
@@ -102,12 +105,13 @@ public class MusicPlayer {
     }
 
     private static class PlaybackThread extends Thread {
-        private static final Object GUI_INITIALIZATION_MONITOR = new Object();
+        private static final Object THREAD_MONITOR = new Object();
         private int nBytesWritten;
         private AudioInputStream din;
         private SourceDataLine line;
         private boolean pauseThreadFlag;
         private boolean isRunning = true;
+        private boolean running = true;
 
         public PlaybackThread(SourceDataLine line, AudioInputStream din) {
             this.line = line;
@@ -121,7 +125,7 @@ public class MusicPlayer {
                 int nBytesRead = 0;
                 nBytesWritten = 0;
                 isRunning = true;
-                while(nBytesRead != -1) {
+                while(nBytesRead != -1 && running) {
 
                     checkForPaused();
                     nBytesRead = din.read(data, 0, data.length);
@@ -141,10 +145,10 @@ public class MusicPlayer {
         }
 
         private void checkForPaused() {
-            synchronized (GUI_INITIALIZATION_MONITOR) {
+            synchronized (THREAD_MONITOR) {
                 while(pauseThreadFlag) {
                     try {
-                        GUI_INITIALIZATION_MONITOR.wait();
+                        THREAD_MONITOR.wait();
                     } catch (Exception e) {
                         logger.warn(e);
                     }
@@ -157,10 +161,14 @@ public class MusicPlayer {
         }
 
         public void resumeThread() {
-            synchronized (GUI_INITIALIZATION_MONITOR) {
+            synchronized (THREAD_MONITOR) {
                 pauseThreadFlag = false;
-                GUI_INITIALIZATION_MONITOR.notify();
+                THREAD_MONITOR.notify();
             }
+        }
+
+        public void terminate() {
+            running = false;
         }
     }
 
