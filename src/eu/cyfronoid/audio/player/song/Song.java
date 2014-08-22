@@ -48,8 +48,12 @@ public class Song {
         return decodedFormat;
     }
 
+    public SongProperties getSongProperties() {
+        return songProperties;
+    }
+
     public int getDurationInMiliseconds() {
-        return Integer.valueOf(songProperties.getDurationInMiliseconds());
+        return songProperties.getDurationInMiliseconds();
     }
 
     protected void finalize() throws IOException {
@@ -59,7 +63,22 @@ public class Song {
     }
 
     public String getTitle() {
-        // TODO Auto-generated method stub
         return songProperties.getTitle();
+    }
+
+    public int getSizeInBytes() {
+        return songProperties.getSizeInBytes();
+    }
+
+    public float getFps() {
+        return songProperties.getFps();
+    }
+
+    public int getFrameSize() {
+        return songProperties.getFrameSize();
+    }
+
+    public int getChannelNumber() {
+        return songProperties.getChannelNumber();
     }
 }

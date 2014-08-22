@@ -20,6 +20,8 @@ import javax.swing.JPanel;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.eventbus.EventBus;
+
 import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.resources.Resources;
@@ -34,6 +36,7 @@ public class CyfronoidPlayer extends JFrame {
     private static final Logger logger = Logger.getLogger(CyfronoidPlayer.class);
     private JButton playPauseButton;
     private MusicPlayer musicPlayer = new MusicPlayer();
+    private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
     /**
      * Launch the application.
@@ -126,7 +129,9 @@ public class CyfronoidPlayer extends JFrame {
         songPanel.add(nextSongButton);
 
         songPanel.add(new Loudness());
-        songPanel.add(new PlayingProgress());
+        PlayingProgress playingProgress = new PlayingProgress();
+        eventBus.register(playingProgress);
+        songPanel.add(playingProgress);
 
         addWindowListener(new PlayerWindowListener());
     }

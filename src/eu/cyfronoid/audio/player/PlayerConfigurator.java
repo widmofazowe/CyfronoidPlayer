@@ -15,9 +15,11 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
 import com.google.common.base.Optional;
+import com.google.common.eventbus.EventBus;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Singleton;
 
 import eu.cyfronoid.audio.player.providers.PlayerConfigPropertiesProvider;
 import eu.cyfronoid.audio.player.resources.Resources;
@@ -48,6 +50,7 @@ public class PlayerConfigurator extends AbstractModule {
     @Override
     protected void configure() {
         bind(ConfigProperties.class).toProvider(PlayerConfigPropertiesProvider.class);
+        bind(EventBus.class).in(Singleton.class);
     }
 
     private PlayerConfigurator() {

@@ -1,6 +1,7 @@
 package eu.cyfronoid.audio.player;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -12,6 +13,10 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.collect.Lists;
+import com.google.common.eventbus.EventBus;
+
+import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
 import eu.cyfronoid.audio.player.song.Song;
 
 public class MusicPlayer {
@@ -19,12 +24,15 @@ public class MusicPlayer {
     private Song actualSong;
     private boolean isPlaying = false;
     private PlaybackThread playbackThread;
+    private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
+    private List<PlaybackListener> playbackListeners = Lists.newArrayList();
 
     public static void main(String[] argv) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
         MusicPlayer player = new MusicPlayer();
         Song song = new Song("Nightmare.mp3");
         player.actualSong = song;
         player.startPlaying();
+
     }
 
     public void setSong(Song song) {
@@ -80,23 +88,15 @@ public class MusicPlayer {
     private void rawplay(AudioFormat targetFormat, AudioInputStream din) throws IOException, LineUnavailableException {
         SourceDataLine line = getLine(targetFormat);
         logger.debug("Starting song " + actualSong.getTitle());
-        line.start();
-        playbackThread = new PlaybackThread(line, din);
+        playbackThread = new PlaybackThread(targetFormat, line, din);
         playbackThread.start();
         isPlaying = true;
-//        try {
-//            Thread.sleep(1);
-//        } catch (InterruptedException e) {
-//            // TODO Auto-generated catch block
-//            e.printStackTrace();
-//        }
     }
 
     private SourceDataLine getLine(AudioFormat audioFormat) throws LineUnavailableException {
         SourceDataLine res = null;
         DataLine.Info info = new DataLine.Info(SourceDataLine.class, audioFormat);
         res = (SourceDataLine) AudioSystem.getLine(info);
-        res.open(audioFormat);
         return res;
     }
 
@@ -104,27 +104,37 @@ public class MusicPlayer {
         return isPlaying;
     }
 
-    private static class PlaybackThread extends Thread {
-        private static final Object THREAD_MONITOR = new Object();
+    public void addPlaybackListener(PlaybackListener listener) {
+        playbackListeners.add(listener);
+    }
+
+    private class PlaybackThread extends Thread {
+        private static final int BUFFER_SIZE = 4096;
+        private final Object THREAD_MONITOR = new Object();
         private int nBytesWritten;
         private AudioInputStream din;
         private SourceDataLine line;
         private boolean pauseThreadFlag;
         private boolean isRunning = true;
         private boolean running = true;
+        private AudioFormat format;
 
-        public PlaybackThread(SourceDataLine line, AudioInputStream din) {
+        public PlaybackThread(AudioFormat targetFormat, SourceDataLine line, AudioInputStream din) throws LineUnavailableException {
             this.line = line;
             this.din = din;
+            this.format = targetFormat;
+            line.open(format, BUFFER_SIZE);
+            line.start();
         }
 
         @Override
         public void run() {
-            byte[] data = new byte[4096];
+            byte[] data = new byte[BUFFER_SIZE];
             try {
                 int nBytesRead = 0;
                 nBytesWritten = 0;
                 isRunning = true;
+
                 while(nBytesRead != -1 && running) {
 
                     checkForPaused();
@@ -132,6 +142,7 @@ public class MusicPlayer {
 
                     if(nBytesRead != -1) {
                         nBytesWritten = line.write(data, 0, nBytesRead);
+                        eventBus.post(new UpdatePlayingProgressEvent(actualSong.getSongProperties(), (int)line.getMicrosecondPosition()/1000));
                     }
                 }
 
