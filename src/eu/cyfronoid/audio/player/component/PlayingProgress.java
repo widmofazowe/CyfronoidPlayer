@@ -10,16 +10,14 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 
-import org.apache.log4j.Logger;
-
 import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
 import eu.cyfronoid.audio.player.song.SongRangeModel;
+import eu.cyfronoid.framework.format.Format;
 
 public class PlayingProgress extends JPanel {
     private static final long serialVersionUID = 7644249089068917323L;
-    private static final Logger logger = Logger.getLogger(PlayingProgress.class);
     private SongRangeModel brm;
     private JLabel progressLabel;
     private JSlider progressSlider;
@@ -58,13 +56,21 @@ public class PlayingProgress extends JPanel {
         progressSlider.setValue(event.getMilisecondsElapsed());
     }
 
-    private enum PlaybackProgressFormatter {
+    public static enum PlaybackProgressFormatter implements Format {
         INSTANCE;
 
         private DecimalFormat formatter = new DecimalFormat("00");
 
         public String format(int actual, int duration) {
             return formatValueToString(actual) + " / " + formatValueToString(duration);
+        }
+
+        @Override
+        public Object format(Object object) {
+            if(object.getClass().equals(Long.class)) {
+                return formatValueToString((int)(((Long) object)/1000));
+            }
+            return formatValueToString((int) object);
         }
 
         private String formatValueToString(int actual) {
@@ -85,5 +91,7 @@ public class PlayingProgress extends JPanel {
         private String getSeconds(int actual) {
             return formatter.format((actual/1000)%60);
         }
+
+
     }
 }

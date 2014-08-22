@@ -78,7 +78,7 @@ public class SongProperties {
         DATE("date", String.class), //[String], The date (year) of the recording or release of the stream.
         COPYRIGHT("copyright", String.class), //[String], Copyright message of the stream.
         COMMENT("comment", String.class), //[String], Comment of the stream.
-
+        FILE_NAME("file.name", String.class), //[String], Comment of the stream.
 
         MP3_VERSION_MPEG("mp3.version.mpeg", String.class), //[String], mpeg version"), //1,2 or 2.5
         MP3_VERSION_LAYER("mp3.version.layer", String.class), //[String], layer version 1, 2 or 3

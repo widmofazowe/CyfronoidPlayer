@@ -15,7 +15,9 @@ import org.apache.log4j.Logger;
 
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 
+import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
 import eu.cyfronoid.audio.player.song.Song;
 
@@ -37,15 +39,19 @@ public class MusicPlayer {
 
     public void setSong(Song song) {
         actualSong = song;
+        stop();
+    }
+
+    private void stop() {
         if(playbackThread != null && playbackThread.isAlive()) {
             playbackThread.terminate();
         }
         playbackThread = null;
     }
 
-    public void startPlaying() throws IOException, LineUnavailableException {
+    public void startPlaying() throws IOException, LineUnavailableException, UnsupportedAudioFileException {
         if(canStartPlayback()) {
-            rawPlay();
+            rawplay();
         }
     }
 
@@ -53,7 +59,7 @@ public class MusicPlayer {
         try {
             if(!isPlaying) {
                 if(canStartPlayback()) {
-                    rawPlay();
+                    rawplay();
                 } else {
                     isPlaying = true;
                     resume();
@@ -67,12 +73,18 @@ public class MusicPlayer {
         }
     }
 
-    private void rawPlay() throws IOException, LineUnavailableException {
+    private void rawplay() throws IOException, LineUnavailableException, UnsupportedAudioFileException {
         rawplay(actualSong.getFormat(), actualSong.getDecodedAudioInputStream());
     }
 
     private boolean canStartPlayback() {
         return playbackThread == null || (playbackThread != null && !playbackThread.isRunning);
+    }
+
+    @Subscribe
+    public void changeSong(SongChangeEvent event) throws IOException, LineUnavailableException, UnsupportedAudioFileException {
+        setSong(event.getSong());
+        rawplay();
     }
 
     private void resume() {

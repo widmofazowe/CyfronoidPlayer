@@ -2,17 +2,23 @@ package eu.cyfronoid.audio.player.song;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-public class Song {
+import eu.cyfronoid.audio.player.playlist.Playlist;
+import eu.cyfronoid.gui.tableModel.TableElement;
+
+public class Song implements TableElement {
     private SongProperties songProperties;
     private File file;
     private AudioFormat decodedFormat;
     private AudioInputStream in;
+    private Map<String, Object> tableProperties = new HashMap<>();
 
     public Song(String fileName) throws UnsupportedAudioFileException, IOException {
         this(new File(fileName));
@@ -22,10 +28,17 @@ public class Song {
         songProperties = new SongProperties(file);
         this.file = file;
         processFile();
+        populateTableProperties();
+    }
+
+    private void populateTableProperties() {
+        for(Playlist.Column column : Playlist.Column.values()) {
+            tableProperties.put(column.columnName, column.format(songProperties.get(column.property)));
+        }
     }
 
     private void processFile() throws UnsupportedAudioFileException, IOException {
-        in = AudioSystem.getAudioInputStream(file);
+        in = getAudioInputStream();
         AudioFormat baseFormat = in.getFormat();
         decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
                       baseFormat.getSampleRate(),
@@ -36,12 +49,13 @@ public class Song {
                       false);
     }
 
-    public AudioInputStream getAudioInputStream() {
-        return in;
+    public AudioInputStream getDecodedAudioInputStream() throws UnsupportedAudioFileException, IOException {
+        finalize();
+        return AudioSystem.getAudioInputStream(decodedFormat, getAudioInputStream());
     }
 
-    public AudioInputStream getDecodedAudioInputStream() {
-        return AudioSystem.getAudioInputStream(decodedFormat, in);
+    public AudioInputStream getAudioInputStream() throws UnsupportedAudioFileException, IOException {
+        return AudioSystem.getAudioInputStream(file);
     }
 
     public AudioFormat getFormat() {
@@ -80,5 +94,13 @@ public class Song {
 
     public int getChannelNumber() {
         return songProperties.getChannelNumber();
+    }
+
+    @Override
+    public Object getAttributeValue(String columnName) {
+        if(columnName.equals(Playlist.Column.FILE_NAME.columnName)) {
+            return file.getName();
+        }
+        return tableProperties.get(columnName);
     }
 }

@@ -17,6 +17,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTree;
 
 import org.apache.log4j.Logger;
 
@@ -24,6 +26,7 @@ import com.google.common.eventbus.EventBus;
 
 import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
+import eu.cyfronoid.audio.player.component.PlaylistTable;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
@@ -37,6 +40,7 @@ public class CyfronoidPlayer extends JFrame {
     private JButton playPauseButton;
     private MusicPlayer musicPlayer = new MusicPlayer();
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
+    private PlaylistTable playlistTable;
 
     /**
      * Launch the application.
@@ -49,7 +53,7 @@ public class CyfronoidPlayer extends JFrame {
                     window.musicPlayer.setSong(new Song("Nightmare.mp3"));
                     window.setVisible(true);
                 } catch (Exception e) {
-                    logger.error(ExceptionHelper.getStackTrace(e));
+                    logger.error(e + " " + ExceptionHelper.getStackTrace(e));
                 }
             }
         });
@@ -101,6 +105,15 @@ public class CyfronoidPlayer extends JFrame {
 
         JPanel panel = new JPanel();
         layeredPane.add(panel, BorderLayout.CENTER);
+        panel.setLayout(new BorderLayout(0, 0));
+
+        playlistTable = new PlaylistTable();
+        JScrollPane tableScrollPane = new JScrollPane(playlistTable);
+        tableScrollPane.setAutoscrolls(true);
+        panel.add(tableScrollPane);
+
+        JTree tree = new JTree();
+        panel.add(tree, BorderLayout.WEST);
 
         JPanel songPanel = new JPanel();
         FlowLayout flowLayout = (FlowLayout) songPanel.getLayout();
@@ -131,6 +144,7 @@ public class CyfronoidPlayer extends JFrame {
         songPanel.add(new Loudness());
         PlayingProgress playingProgress = new PlayingProgress();
         eventBus.register(playingProgress);
+        eventBus.register(musicPlayer);
         songPanel.add(playingProgress);
 
         addWindowListener(new PlayerWindowListener());
@@ -162,5 +176,6 @@ public class CyfronoidPlayer extends JFrame {
         }
 
     }
+
 
 }
