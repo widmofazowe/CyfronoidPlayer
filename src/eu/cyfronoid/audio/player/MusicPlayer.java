@@ -50,6 +50,7 @@ public class MusicPlayer {
         if(playbackThread != null && playbackThread.isAlive()) {
             playbackThread.terminate();
         }
+        gainControl = null;
         playbackThread = null;
     }
 
@@ -169,7 +170,7 @@ public class MusicPlayer {
     }
 
     private class PlaybackThread extends Thread {
-        private static final int BUFFER_SIZE = 4096;
+        private static final int BUFFER_SIZE = 2048;
         private final Object THREAD_MONITOR = new Object();
         private int nBytesWritten;
         private AudioInputStream din;

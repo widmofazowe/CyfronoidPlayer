@@ -18,7 +18,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTree;
 
 import org.apache.log4j.Logger;
 
@@ -26,6 +25,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.component.Loudness;
+import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
@@ -114,8 +114,10 @@ public class CyfronoidPlayer extends JFrame {
         tableScrollPane.setAutoscrolls(true);
         panel.add(tableScrollPane);
 
-        JTree tree = new JTree();
-        panel.add(tree, BorderLayout.WEST);
+        MusicLibraryTree tree = new MusicLibraryTree();
+        JScrollPane musicLibraryScrollPane = new JScrollPane(tree);
+        musicLibraryScrollPane.setAutoscrolls(true);
+        panel.add(musicLibraryScrollPane, BorderLayout.WEST);
 
         JPanel songPanel = new JPanel();
         FlowLayout flowLayout = (FlowLayout) songPanel.getLayout();

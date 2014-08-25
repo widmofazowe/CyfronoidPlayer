@@ -10,6 +10,6 @@
     <dependency org="com.googlecode.soundlibs" name="jlayer" rev="1.0.1-1"/>
     <dependency org="com.googlecode.soundlibs" name="mp3spi" rev="1.9.5-1"/>
     <dependency org="com.googlecode.soundlibs" name="soundlibs" rev="1.2"/>
-
+    <dependency org="org.jfree" name="jfreechart" rev="1.0.19"/>
   </dependencies>
 </ivy-module>

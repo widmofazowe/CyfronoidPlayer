@@ -108,4 +108,5 @@ public class Song implements TableElement {
     public String toString() {
         return songProperties.getAuthor() + " - " + songProperties.getTitle();
     }
+
 }
