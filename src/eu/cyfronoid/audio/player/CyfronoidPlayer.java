@@ -23,10 +23,12 @@ import javax.swing.JTree;
 import org.apache.log4j.Logger;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
@@ -145,9 +147,16 @@ public class CyfronoidPlayer extends JFrame {
         PlayingProgress playingProgress = new PlayingProgress();
         eventBus.register(playingProgress);
         eventBus.register(musicPlayer);
+        eventBus.register(playlistTable);
+        eventBus.register(this);
         songPanel.add(playingProgress);
 
         addWindowListener(new PlayerWindowListener());
+    }
+
+    @Subscribe
+    public void songChanged(SongChangeEvent event) {
+        setTitle(PlayerConfigurator.APP_NAME + " - " + event.getSong());
     }
 
     private JButton createButton(Icons icon, String tooltipKey) {

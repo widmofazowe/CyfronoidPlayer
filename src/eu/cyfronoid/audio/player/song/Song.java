@@ -103,4 +103,9 @@ public class Song implements TableElement {
         }
         return tableProperties.get(columnName);
     }
+
+    @Override
+    public String toString() {
+        return songProperties.getAuthor() + " - " + songProperties.getTitle();
+    }
 }

@@ -7,6 +7,7 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
+import javax.sound.sampled.FloatControl;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -17,7 +18,9 @@ import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import eu.cyfronoid.audio.player.event.ChangeGainEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
+import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
 import eu.cyfronoid.audio.player.song.Song;
 
@@ -28,13 +31,14 @@ public class MusicPlayer {
     private PlaybackThread playbackThread;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private List<PlaybackListener> playbackListeners = Lists.newArrayList();
+    private SourceDataLine line;
+    private FloatControl gainControl;
 
     public static void main(String[] argv) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
         MusicPlayer player = new MusicPlayer();
         Song song = new Song("Nightmare.mp3");
         player.actualSong = song;
         player.startPlaying();
-
     }
 
     public void setSong(Song song) {
@@ -98,11 +102,55 @@ public class MusicPlayer {
     }
 
     private void rawplay(AudioFormat targetFormat, AudioInputStream din) throws IOException, LineUnavailableException {
-        SourceDataLine line = getLine(targetFormat);
+        line = getLine(targetFormat);
         logger.debug("Starting song " + actualSong.getTitle());
         playbackThread = new PlaybackThread(targetFormat, line, din);
         playbackThread.start();
         isPlaying = true;
+    }
+
+    @Subscribe
+    public void recive(ChangeGainEvent event) {
+        setGain(event.getGain());
+    }
+
+    public void setGain(double paramDouble) {
+        if(hasGainControl()) {
+            double d4 = calculateGain(paramDouble);
+            logger.debug("Gain: " + d4);
+            this.gainControl.setValue((float)d4);
+        } else {
+            logger.error("Gain control not supported");
+        }
+    }
+
+    public double calculateGain(double paramDouble) {
+        double d1 = getMinimumGain();
+        double d2 = 0.5F * getMaximumGain() - getMinimumGain();
+        double d3 = Math.log(10.0D) / 20.0D;
+        double d4 = d1 + 1.0D / d3 * Math.log(1.0D + (Math.exp(d3 * d2) - 1.0D) * paramDouble);
+        return d4;
+    }
+
+    public float getMaximumGain() {
+        if (hasGainControl()) {
+            return this.gainControl.getMaximum();
+        }
+        return 0.0F;
+    }
+
+    public float getMinimumGain() {
+        if (hasGainControl()) {
+            return this.gainControl.getMinimum();
+        }
+        return 0.0F;
+    }
+
+    public boolean hasGainControl() {
+        if((this.gainControl == null) && (this.line != null) && (this.line.isControlSupported(FloatControl.Type.MASTER_GAIN))) {
+            this.gainControl = ((FloatControl)this.line.getControl(FloatControl.Type.MASTER_GAIN));
+        }
+        return this.gainControl != null;
     }
 
     private SourceDataLine getLine(AudioFormat audioFormat) throws LineUnavailableException {
@@ -162,6 +210,7 @@ public class MusicPlayer {
                 line.stop();
                 line.close();
                 isRunning = false;
+                eventBus.post(new SongFinishedEvent(actualSong));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

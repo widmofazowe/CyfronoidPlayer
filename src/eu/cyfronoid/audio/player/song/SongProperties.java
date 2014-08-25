@@ -46,6 +46,10 @@ public class SongProperties {
         return (String) get(SongProperty.TITLE);
     }
 
+    public String getAuthor() {
+        return (String) get(SongProperty.AUTHOR);
+    }
+
     public int getSizeInBytes() {
         return (int) get(SongProperty.MP3_BYTES);
     }

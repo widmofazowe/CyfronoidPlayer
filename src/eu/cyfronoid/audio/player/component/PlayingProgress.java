@@ -41,7 +41,7 @@ public class PlayingProgress extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 int value = progressSlider.getValue();
-                progressLabel.setText(PlaybackProgressFormatter.INSTANCE.format(value, brm.getMax()));
+                progressLabel.setText(PlaybackProgressFormatter.INSTANCE.format(value, brm.getMaximum()));
             }
         });
         add(progressSlider);
