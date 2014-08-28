@@ -15,10 +15,8 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
-import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.component.PlayingProgress.PlaybackProgressFormatter;
-import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.audio.player.song.SongProperties.SongProperty;
 import eu.cyfronoid.framework.format.Format;
@@ -56,7 +54,6 @@ public class Playlist extends CommonTableModel {
             }
             return null;
         }
-
 
     }
 

@@ -32,7 +32,6 @@ import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
-import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.gui.action.CommonActionListener;
 
@@ -52,7 +51,7 @@ public class CyfronoidPlayer extends JFrame {
             public void run() {
                 try {
                     CyfronoidPlayer window = new CyfronoidPlayer();
-                    window.musicPlayer.setSong(new Song("Nightmare.mp3"));
+                    //window.musicPlayer.setSong();
                     window.setVisible(true);
                 } catch (Exception e) {
                     logger.error(e + " " + ExceptionHelper.getStackTrace(e));
