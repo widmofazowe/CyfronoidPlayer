@@ -47,7 +47,7 @@ public class MusicPlayer {
     }
 
     private void stop() {
-        if(playbackThread != null && playbackThread.isAlive()) {
+        if(playbackThread != null && playbackThread.isRuning()) {
             playbackThread.terminate();
         }
         gainControl = null;
@@ -207,11 +207,15 @@ public class MusicPlayer {
                     }
                 }
 
+
                 line.drain();
                 line.stop();
                 line.close();
+                din.close();
                 isRunning = false;
-                eventBus.post(new SongFinishedEvent(actualSong));
+                if(running) {
+                    eventBus.post(new SongFinishedEvent(actualSong));
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -238,6 +242,10 @@ public class MusicPlayer {
                 pauseThreadFlag = false;
                 THREAD_MONITOR.notify();
             }
+        }
+
+        public boolean isRuning() {
+            return running;
         }
 
         public void terminate() {

@@ -27,7 +27,6 @@ public class Song implements TableElement {
     public Song(File file) throws UnsupportedAudioFileException, IOException {
         songProperties = new SongProperties(file);
         this.file = file;
-        processFile();
         populateTableProperties();
     }
 
@@ -37,7 +36,13 @@ public class Song implements TableElement {
         }
     }
 
+    public AudioInputStream getDecodedAudioInputStream() throws UnsupportedAudioFileException, IOException {
+        processFile();
+        return AudioSystem.getAudioInputStream(decodedFormat, in);
+    }
+
     private void processFile() throws UnsupportedAudioFileException, IOException {
+        close();
         in = getAudioInputStream();
         AudioFormat baseFormat = in.getFormat();
         decodedFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED,
@@ -49,12 +54,7 @@ public class Song implements TableElement {
                       false);
     }
 
-    public AudioInputStream getDecodedAudioInputStream() throws UnsupportedAudioFileException, IOException {
-        finalize();
-        return AudioSystem.getAudioInputStream(decodedFormat, getAudioInputStream());
-    }
-
-    public AudioInputStream getAudioInputStream() throws UnsupportedAudioFileException, IOException {
+    private AudioInputStream getAudioInputStream() throws UnsupportedAudioFileException, IOException {
         return AudioSystem.getAudioInputStream(file);
     }
 
@@ -68,12 +68,6 @@ public class Song implements TableElement {
 
     public int getDurationInMiliseconds() {
         return songProperties.getDurationInMiliseconds();
-    }
-
-    protected void finalize() throws IOException {
-        if(in != null) {
-            in.close();
-        }
     }
 
     public String getTitle() {
@@ -107,6 +101,13 @@ public class Song implements TableElement {
     @Override
     public String toString() {
         return songProperties.getAuthor() + " - " + songProperties.getTitle();
+    }
+
+    public void close() throws IOException {
+        if(in != null) {
+            in.close();
+            in = null;
+        }
     }
 
 }
