@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<settings>
-    <gain>0.68</gain>
+<settings xmlns:ns2="eu.cyfronoid.audio.player.resources.Settings">
+    <windowDimension>800.0:600.0</windowDimension>
     <musicLibraryDirectories>
         <directory>MusicLibrary</directory>
     </musicLibraryDirectories>
+    <gain>0.79</gain>
+    <actualSelections>
+        <expansionState>[],[, MusicLibrary],[, MusicLibrary, Black Label],</expansionState>
+        <selectedSong>C:\Users\Comarch\OneDrive\Java-web - luna\workspace\CyfronoidPlayer\MusicLibrary\Black Label\Black Label Society - Phoney Smiles &amp; Fake Hellos.mp3</selectedSong>
+    </actualSelections>
 </settings>

@@ -14,6 +14,7 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -40,6 +41,10 @@ public class MusicPlayer {
             actualSong.close();
         }
         actualSong = song;
+    }
+
+    public Optional<Song> getActualSong() {
+        return Optional.fromNullable(actualSong);
     }
 
     private void stop() {

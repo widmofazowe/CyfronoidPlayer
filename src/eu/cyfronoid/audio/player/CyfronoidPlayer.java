@@ -18,9 +18,11 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Optional;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -29,11 +31,16 @@ import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
+import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
+import eu.cyfronoid.audio.player.resources.DefaultSettings;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
+import eu.cyfronoid.audio.player.song.Song;
+import eu.cyfronoid.framework.scheduler.Scheduler;
 import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.gui.action.CommonActionListener;
+import eu.cyfronoid.gui.tree.TreeState;
 
 public class CyfronoidPlayer extends JFrame {
     private static final long serialVersionUID = -6864245175069172853L;
@@ -42,6 +49,7 @@ public class CyfronoidPlayer extends JFrame {
     private MusicPlayer musicPlayer = new MusicPlayer();
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private PlaylistTable playlistTable;
+    private MusicLibraryTree tree;
 
     /**
      * Launch the application.
@@ -63,8 +71,15 @@ public class CyfronoidPlayer extends JFrame {
      * Create the application.
      */
     public CyfronoidPlayer() {
-        setPreferredSize(new Dimension(750, 400));
-        setMinimumSize(new Dimension(750, 400));
+        Dimension windowDimension = PlayerConfigurator.SETTINGS.getWindowDimension();
+        Dimension defaultDimension = DefaultSettings.INSTANCE.getDimension();
+        if(windowDimension == null) {
+            windowDimension = defaultDimension;
+            PlayerConfigurator.SETTINGS.setWindowDimension(defaultDimension);
+        }
+        setPreferredSize(windowDimension);
+//        setSize(windowDimension);
+        setMinimumSize(defaultDimension);
         initialize();
     }
 
@@ -112,7 +127,7 @@ public class CyfronoidPlayer extends JFrame {
         tableScrollPane.setAutoscrolls(true);
         panel.add(tableScrollPane);
 
-        MusicLibraryTree tree = new MusicLibraryTree();
+        tree = new MusicLibraryTree();
         JScrollPane musicLibraryScrollPane = new JScrollPane(tree);
         musicLibraryScrollPane.setAutoscrolls(true);
         panel.add(musicLibraryScrollPane, BorderLayout.WEST);
@@ -176,11 +191,30 @@ public class CyfronoidPlayer extends JFrame {
         return Resources.PLAYER.get(propertyKey, arguments);
     }
 
-    private static class PlayerWindowListener extends WindowAdapter {
+    private class PlayerWindowListener extends WindowAdapter {
 
         @Override
         public void windowClosing(WindowEvent evt) {
+            Optional<Song> actualSong = musicPlayer.getActualSong();
+            ActualSelectionSettings actualSelections = PlayerConfigurator.SETTINGS.getActualSelections();
+            if(actualSelections == null) {
+                actualSelections = new ActualSelectionSettings();
+                PlayerConfigurator.SETTINGS.setActualSelections(actualSelections);
+            }
+            if(actualSong.isPresent()) {
+                actualSelections.setSelectedSong(actualSong.get());
+            }
+//            TreePath selectionPath = tree.getSelectionPath();
+//
+//            if(selectionPath != null) {
+//                actualSelections.setSelectedTreePath(selectionPath);
+//            }
+
+            TreeState state = new TreeState(tree);
+            actualSelections.setExpansionState(state.getExpansionState());
+            PlayerConfigurator.SETTINGS.setWindowDimension(getSize());
             PlayerConfigurator.saveSettings();
+            Scheduler.INSTANCE.stop();
             logger.debug("Closing application");
             System.exit(0);
         }

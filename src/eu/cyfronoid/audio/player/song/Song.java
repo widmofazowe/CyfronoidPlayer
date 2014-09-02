@@ -30,6 +30,10 @@ public class Song implements TableElement {
         populateTableProperties();
     }
 
+    public String getPath() {
+        return file.getAbsolutePath();
+    }
+
     private void populateTableProperties() {
         for(Playlist.Column column : Playlist.Column.values()) {
             tableProperties.put(column.columnName, column.format(songProperties.get(column.property)));
