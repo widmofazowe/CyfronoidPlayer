@@ -181,6 +181,7 @@ public class CyfronoidPlayer extends JFrame {
 
         @Override
         public void windowClosing(WindowEvent evt) {
+            PlayerConfigurator.saveSettings();
             logger.debug("Closing application");
             System.exit(0);
         }

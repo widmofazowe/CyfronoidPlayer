@@ -75,6 +75,7 @@ public class PlayerConfigurator extends AbstractModule {
             file.createNewFile();
             jaxbContext = JAXBContext.newInstance(Settings.class);
             Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             jaxbMarshaller.marshal(SETTINGS, file);
         } catch (IOException | JAXBException e) {
             logger.error(e);

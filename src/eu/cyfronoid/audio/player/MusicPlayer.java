@@ -34,16 +34,12 @@ public class MusicPlayer {
     private SourceDataLine line;
     private FloatControl gainControl;
 
-    public static void main(String[] argv) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
-        MusicPlayer player = new MusicPlayer();
-        Song song = new Song("Nightmare.mp3");
-        player.actualSong = song;
-        player.startPlaying();
-    }
-
-    public void setSong(Song song) {
-        actualSong = song;
+    public void setSong(Song song) throws IOException {
         stop();
+        if(actualSong != null) {
+            actualSong.close();
+        }
+        actualSong = song;
     }
 
     private void stop() {
@@ -170,7 +166,7 @@ public class MusicPlayer {
     }
 
     private class PlaybackThread extends Thread {
-        private static final int BUFFER_SIZE = 2048;
+        private static final int BUFFER_SIZE = 4096;
         private final Object THREAD_MONITOR = new Object();
         private int nBytesWritten;
         private AudioInputStream din;
@@ -184,7 +180,7 @@ public class MusicPlayer {
             this.line = line;
             this.din = din;
             this.format = targetFormat;
-            line.open(format, BUFFER_SIZE);
+            line.open(format);
             line.start();
         }
 

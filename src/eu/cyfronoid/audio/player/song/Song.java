@@ -58,7 +58,8 @@ public class Song implements TableElement {
         return AudioSystem.getAudioInputStream(file);
     }
 
-    public AudioFormat getFormat() {
+    public AudioFormat getFormat() throws UnsupportedAudioFileException, IOException {
+        processFile();
         return decodedFormat;
     }
 
