@@ -15,8 +15,10 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
+import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.component.PlayingProgress.PlaybackProgressFormatter;
+import eu.cyfronoid.audio.player.event.TreeSelectedEvent;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.audio.player.song.SongProperties.SongProperty;
 import eu.cyfronoid.framework.format.Format;
@@ -35,20 +37,46 @@ public class Playlist extends CommonTableModel {
          }
          columnNames = columnNamesBuilder.build();
     }
+    private boolean isTreeSelectionListener = false;
 
     public Playlist() {
-        super(columnNames);
-        List<File> files = FileUtil.listFilesRecursively(new File("MusicLibrary"), MP3FileFilter.INSTANCE);
-        setElements(Lists.newArrayList(FluentIterable.from(files).transform(FileToSongTransform.INSTANCE).toList()));
+        this(false);
     }
 
-    private static enum FileToSongTransform implements Function<File, TableElement> {
-        INSTANCE;
+    public Playlist(boolean isTreeSelectionListener) {
+        super(columnNames);
+        this.isTreeSelectionListener = isTreeSelectionListener;
+        List<File> files = getMP3FilesFromDirectory("MusicLibrary");
+        setElements(tranformToModel(files));
+    }
 
+    public static List<File> getMP3FilesFromDirectory(String dir) {
+        return getMP3FilesFromDirectory(new File(dir));
+    }
+
+    public static List<File> getMP3FilesFromDirectory(File dir) {
+        List<File> files = FileUtil.listFilesRecursively(dir, MP3FileFilter.INSTANCE);
+        return files;
+    }
+
+    @Subscribe
+    public void listChanged(TreeSelectedEvent e) {
+        if(isTreeSelectionListener) {
+            setElements(tranformToModel(e.getNode().getMP3Files()));
+        }
+    }
+
+    public static List<TableElement> tranformToModel(List<File> files) {
+        return Lists.newArrayList(FluentIterable.from(files).transform(new FileToSongTransform<TableElement>()).toList());
+    }
+
+    private static class FileToSongTransform<T> implements Function<File, T> {
+
+        @SuppressWarnings("unchecked")
         @Override
-        public TableElement apply(File input) {
+        public T apply(File input) {
             try {
-                return (TableElement) new Song(input);
+                return (T) new Song(input);
             } catch (UnsupportedAudioFileException | IOException e) {
                 logger.warn(e);
             }

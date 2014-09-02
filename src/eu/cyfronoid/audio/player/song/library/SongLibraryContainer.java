@@ -1,8 +1,11 @@
 package eu.cyfronoid.audio.player.song.library;
 
 import java.io.File;
+import java.util.List;
 
-public class SongLibraryContainer {
+import eu.cyfronoid.audio.player.playlist.Playlist;
+
+public class SongLibraryContainer implements SongLibraryNode {
     private File file;
     private String name;
 
@@ -18,5 +21,10 @@ public class SongLibraryContainer {
 
     public File getDirectory() {
         return file;
+    }
+
+    @Override
+    public List<File> getMP3Files() {
+        return Playlist.getMP3FilesFromDirectory(file);
     }
 }
