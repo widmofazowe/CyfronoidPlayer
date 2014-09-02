@@ -21,11 +21,12 @@ public class Loudness extends JPanel {
     private static final int MIN = 0;
     final JLabel loudnessLabel = new JLabel("  100%");
     private EventBus eventBus;
+    private JSlider loudness;
 
     public Loudness() {
         FlowLayout flowLayout = (FlowLayout) getLayout();
         flowLayout.setAlignment(FlowLayout.LEFT);
-        final JSlider loudness = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
+        loudness = new JSlider(JSlider.HORIZONTAL, MIN, MAX, MAX);
         Dimension d = loudnessLabel.getPreferredSize();
         loudnessLabel.setPreferredSize(new Dimension(d.width+60,d.height));
         loudness.addMouseMotionListener(new MouseMotionListener() {
@@ -38,16 +39,21 @@ public class Loudness extends JPanel {
 
             @Override
             public void mouseDragged(MouseEvent e) {
-                loudnessLabel.setText(formatLabelValue(loudness));
+                double gain = (double)loudness.getValue()/100.0d;
+                eventBus.post(new ChangeGainEvent(gain));
+                loudnessLabel.setText(getLabelValue());
             }
 
-            private String formatLabelValue(final JSlider loudness) {
-                eventBus.post(new ChangeGainEvent((double)loudness.getValue()/100.0d));
-                return Strings.padStart(Integer.toString(loudness.getValue()), 5, ' ') + "%";
-            }
+
         });
         add(loudness);
+        loudness.setValue((int)(PlayerConfigurator.SETTINGS.getGain()*100.0));
+        loudnessLabel.setText(getLabelValue());
         add(loudnessLabel);
         eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
+    }
+
+    private String getLabelValue() {
+        return Strings.padStart(Integer.toString(loudness.getValue()), 5, ' ') + "%";
     }
 }

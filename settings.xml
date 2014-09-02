@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings>
+    <gain>0.68</gain>
     <musicLibraryDirectories>
         <directory>MusicLibrary</directory>
     </musicLibraryDirectories>

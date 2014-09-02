@@ -103,15 +103,18 @@ public class MusicPlayer {
         logger.debug("Starting song " + actualSong.getTitle());
         playbackThread = new PlaybackThread(targetFormat, line, din);
         playbackThread.start();
+        setGain(PlayerConfigurator.SETTINGS.getGain());
         isPlaying = true;
     }
 
     @Subscribe
     public void recive(ChangeGainEvent event) {
-        setGain(event.getGain());
+        double gain = event.getGain();
+        PlayerConfigurator.SETTINGS.setGain(gain);
+        setGain(gain);
     }
 
-    public void setGain(double paramDouble) {
+    private void setGain(double paramDouble) {
         if(hasGainControl()) {
             double d4 = calculateGain(paramDouble);
             logger.debug("Gain: " + d4);
@@ -121,7 +124,7 @@ public class MusicPlayer {
         }
     }
 
-    public double calculateGain(double paramDouble) {
+    private double calculateGain(double paramDouble) {
         double d1 = getMinimumGain();
         double d2 = 0.5F * getMaximumGain() - getMinimumGain();
         double d3 = Math.log(10.0D) / 20.0D;
@@ -129,21 +132,21 @@ public class MusicPlayer {
         return d4;
     }
 
-    public float getMaximumGain() {
+    private float getMaximumGain() {
         if (hasGainControl()) {
             return this.gainControl.getMaximum();
         }
         return 0.0F;
     }
 
-    public float getMinimumGain() {
+    private float getMinimumGain() {
         if (hasGainControl()) {
             return this.gainControl.getMinimum();
         }
         return 0.0F;
     }
 
-    public boolean hasGainControl() {
+    private boolean hasGainControl() {
         if((this.gainControl == null) && (this.line != null) && (this.line.isControlSupported(FloatControl.Type.MASTER_GAIN))) {
             this.gainControl = ((FloatControl)this.line.getControl(FloatControl.Type.MASTER_GAIN));
         }

@@ -51,7 +51,6 @@ public class CyfronoidPlayer extends JFrame {
             public void run() {
                 try {
                     CyfronoidPlayer window = new CyfronoidPlayer();
-                    //window.musicPlayer.setSong();
                     window.setVisible(true);
                 } catch (Exception e) {
                     logger.error(e + " " + ExceptionHelper.getStackTrace(e));

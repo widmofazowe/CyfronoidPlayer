@@ -25,6 +25,7 @@ public class Settings {
     private static final Logger logger = Logger.getLogger(Settings.class);
 
     private List<String> musicLibraryDirectories;
+    private double gain;
 
     public List<String> getMusicLibraryDirectories() {
         return musicLibraryDirectories;
@@ -64,6 +65,14 @@ public class Settings {
         } catch (JAXBException e) {
             logger.error(e);
         }
+    }
+
+    public double getGain() {
+        return gain;
+    }
+
+    public void setGain(double gain) {
+        this.gain = gain;
     }
 
 }
