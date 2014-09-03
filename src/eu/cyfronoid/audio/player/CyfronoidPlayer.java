@@ -123,7 +123,7 @@ public class CyfronoidPlayer extends JFrame {
         layeredPane.add(panel, BorderLayout.CENTER);
         panel.setLayout(new BorderLayout(0, 0));
 
-        playlistTable = new PlaylistTable();
+        playlistTable = new PlaylistTable(true);
         JScrollPane tableScrollPane = new JScrollPane(playlistTable);
         tableScrollPane.setAutoscrolls(true);
         panel.add(tableScrollPane);

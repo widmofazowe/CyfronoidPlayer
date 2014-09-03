@@ -21,8 +21,8 @@ public class PlaylistTable extends JTable {
     private Playlist playlist;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
-    public PlaylistTable() {
-        playlist = new Playlist(true);
+    public PlaylistTable(boolean isTreeSelectionListener) {
+        playlist = new Playlist(isTreeSelectionListener);
         eventBus.register(playlist);
         setModel(playlist);
         addMouseListener(new PlaylistPopupListener());
@@ -47,7 +47,7 @@ public class PlaylistTable extends JTable {
         private JPopupMenu popup;
 
         PlaylistPopupListener() {
-
+            popup = new JPopupMenu();
         }
 
         @Override
@@ -65,15 +65,15 @@ public class PlaylistTable extends JTable {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if (e.isPopupTrigger()){
-//                JTable source = (JTable)e.getSource();
-//                int row = source.rowAtPoint( e.getPoint() );
-//                int column = source.columnAtPoint( e.getPoint() );
-//
-//                if(!source.isRowSelected(row)) {
-//                    source.changeSelection(row, column, false, false);
-//                }
-//                popup.show(e.getComponent(), e.getX(), e.getY());
+            if(e.isPopupTrigger()){
+                JTable source = (JTable)e.getSource();
+                int row = source.rowAtPoint(e.getPoint());
+                int column = source.columnAtPoint(e.getPoint());
+
+                if(!source.isRowSelected(row)) {
+                    source.changeSelection(row, column, false, false);
+                }
+                popup.show(e.getComponent(), e.getX(), e.getY());
             }
         }
 
