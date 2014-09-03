@@ -19,7 +19,9 @@ import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
+import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
 import eu.cyfronoid.audio.player.event.ChangeGainEvent;
+import eu.cyfronoid.audio.player.event.NewSamplesEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
@@ -34,6 +36,7 @@ public class MusicPlayer {
     private List<PlaybackListener> playbackListeners = Lists.newArrayList();
     private SourceDataLine line;
     private FloatControl gainControl;
+    private AnalyzerDialog analyzer;
 
     public void setSong(Song song) throws IOException {
         stop();
@@ -108,6 +111,7 @@ public class MusicPlayer {
         logger.debug("Starting song " + actualSong.getTitle());
         playbackThread = new PlaybackThread(targetFormat, line, din);
         playbackThread.start();
+        analyzer.startDSP(line);
         setGain(PlayerConfigurator.SETTINGS.getGain());
         isPlaying = true;
     }
@@ -205,6 +209,8 @@ public class MusicPlayer {
                     checkForPaused();
                     nBytesRead = din.read(data, 0, data.length);
 
+                    eventBus.post(new NewSamplesEvent(data));
+
                     if(nBytesRead != -1) {
                         nBytesWritten = line.write(data, 0, nBytesRead);
                         eventBus.post(new UpdatePlayingProgressEvent(actualSong.getSongProperties(), (int)line.getMicrosecondPosition()/1000));
@@ -255,6 +261,10 @@ public class MusicPlayer {
         public void terminate() {
             running = false;
         }
+    }
+
+    public void setAnalyzer(AnalyzerDialog analyzerTest) {
+        this.analyzer = analyzerTest;
     }
 
 }

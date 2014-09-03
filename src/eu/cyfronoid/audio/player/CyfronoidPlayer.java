@@ -18,7 +18,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.tree.TreePath;
 
 import org.apache.log4j.Logger;
 
@@ -30,6 +29,7 @@ import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
@@ -50,6 +50,7 @@ public class CyfronoidPlayer extends JFrame {
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private PlaylistTable playlistTable;
     private MusicLibraryTree tree;
+    private AnalyzerDialog analyzerTest;
 
     /**
      * Launch the application.
@@ -167,6 +168,10 @@ public class CyfronoidPlayer extends JFrame {
         songPanel.add(playingProgress);
 
         addWindowListener(new PlayerWindowListener());
+
+        analyzerTest = AnalyzerDialog.open();
+        eventBus.register(analyzerTest);
+        musicPlayer.setAnalyzer(analyzerTest);
     }
 
     @Subscribe
