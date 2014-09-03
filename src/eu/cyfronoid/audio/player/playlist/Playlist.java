@@ -60,9 +60,16 @@ public class Playlist extends CommonTableModel {
     }
 
     @Subscribe
-    public void listChanged(TreeSelectedEvent e) {
+    public void listChanged(TreeSelectedEvent e) throws IOException {
         if(isTreeSelectionListener) {
+            clearResources();
             setElements(tranformToModel(e.getNode().getMP3Files()));
+        }
+    }
+
+    private void clearResources() throws IOException {
+        for(TableElement element : getAllElements()) {
+            ((Song) element).close();
         }
     }
 
