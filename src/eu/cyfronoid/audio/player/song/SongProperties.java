@@ -50,6 +50,10 @@ public class SongProperties {
         return (String) get(SongProperty.AUTHOR);
     }
 
+    public String getAlbum() {
+        return (String) get(SongProperty.ALBUM);
+    }
+
     public int getSizeInBytes() {
         return (int) get(SongProperty.MP3_BYTES);
     }
@@ -115,6 +119,5 @@ public class SongProperties {
             this.type = type;
         }
     }
-
 
 }

@@ -105,7 +105,7 @@ public class Song implements TableElement {
 
     @Override
     public String toString() {
-        return songProperties.getAuthor() + " - " + songProperties.getTitle();
+        return songProperties.getAuthor() + " - " + songProperties.getAlbum() + " - " + songProperties.getTitle();
     }
 
     public void close() throws IOException {
