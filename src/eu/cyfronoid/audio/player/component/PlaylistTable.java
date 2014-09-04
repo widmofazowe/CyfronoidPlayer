@@ -1,8 +1,11 @@
 package eu.cyfronoid.audio.player.component;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 
@@ -14,6 +17,8 @@ import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.playlist.Playlist;
+import eu.cyfronoid.audio.player.resources.Resources;
+import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
 
 public class PlaylistTable extends JTable {
@@ -54,18 +59,22 @@ public class PlaylistTable extends JTable {
 
         PlaylistPopupListener() {
             popup = new JPopupMenu();
+            JMenuItem playMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.PLAY));
+            playMenuItem.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    play();
+                }
+
+            });
+            popup.add(playMenuItem );
         }
 
         @Override
         public void mouseClicked(MouseEvent e) {
             if(e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2) {
-                Optional<Integer> modelElementIndex = getModelElementIndex();
-                if(!modelElementIndex.isPresent()) {
-                    return;
-                }
-                int index = modelElementIndex.get();
-                Song song = getSong(index);
-                eventBus.post(new SongChangeEvent(song));
+                play();
             }
         }
 
@@ -85,6 +94,23 @@ public class PlaylistTable extends JTable {
 
     }
 
+    private void play() {
+        Optional<Song> song = getSelectedSong();
+        if(song.isPresent()) {
+            eventBus.post(new SongChangeEvent(song.get()));
+        }
+    }
+
+    private Optional<Song> getSelectedSong() {
+        Optional<Integer> modelElementIndex = getModelElementIndex();
+        if(!modelElementIndex.isPresent()) {
+            return Optional.absent();
+        }
+        int index = modelElementIndex.get();
+        Song song = getSong(index);
+        return Optional.of(song);
+    }
+
     private Song getSong(int i) {
         return (Song) playlist.get(i);
     }
@@ -97,4 +123,5 @@ public class PlaylistTable extends JTable {
         int modelElementIndex = convertRowIndexToModel(selectedRow);
         return Optional.of(modelElementIndex);
     }
+
 }
