@@ -28,9 +28,9 @@ import com.google.common.eventbus.Subscribe;
 import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
-import eu.cyfronoid.audio.player.component.PlaylistTable;
 import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
+import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
 import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
 import eu.cyfronoid.audio.player.resources.Resources;
@@ -46,9 +46,8 @@ public class CyfronoidPlayer extends JFrame {
     private static final long serialVersionUID = -6864245175069172853L;
     private static final Logger logger = Logger.getLogger(CyfronoidPlayer.class);
     private JButton playPauseButton;
-    private MusicPlayer musicPlayer = new MusicPlayer();
+    private MusicPlayer musicPlayer = PlayerConfigurator.injector.getInstance(MusicPlayer.class);
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
-    private PlaylistTable playlistTable;
     private MusicLibraryTree tree;
     private AnalyzerDialog analyzerTest;
 
@@ -79,7 +78,7 @@ public class CyfronoidPlayer extends JFrame {
             PlayerConfigurator.SETTINGS.setWindowDimension(defaultDimension);
         }
         setPreferredSize(windowDimension);
-//        setSize(windowDimension);
+        setSize(windowDimension);
         setMinimumSize(defaultDimension);
         initialize();
     }
@@ -123,10 +122,8 @@ public class CyfronoidPlayer extends JFrame {
         layeredPane.add(panel, BorderLayout.CENTER);
         panel.setLayout(new BorderLayout(0, 0));
 
-        playlistTable = new PlaylistTable(true);
-        JScrollPane tableScrollPane = new JScrollPane(playlistTable);
-        tableScrollPane.setAutoscrolls(true);
-        panel.add(tableScrollPane);
+        PlaylistsPanel playlistsPanel = new PlaylistsPanel();
+        panel.add(playlistsPanel);
 
         tree = new MusicLibraryTree();
         JScrollPane musicLibraryScrollPane = new JScrollPane(tree);
@@ -147,11 +144,7 @@ public class CyfronoidPlayer extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 musicPlayer.togglePlay();
-                if(musicPlayer.isPlaying()) {
-                    playPauseButton.setIcon(Icons.PAUSE_ARROW.getImageIcon());
-                } else {
-                    playPauseButton.setIcon(Icons.PLAY_ARROW.getImageIcon());
-                }
+                setPlayPauseButtonImage();
             }
         });
         songPanel.add(playPauseButton);
@@ -163,7 +156,7 @@ public class CyfronoidPlayer extends JFrame {
         PlayingProgress playingProgress = new PlayingProgress();
         eventBus.register(playingProgress);
         eventBus.register(musicPlayer);
-        eventBus.register(playlistTable);
+
         eventBus.register(this);
         songPanel.add(playingProgress);
 
@@ -194,6 +187,14 @@ public class CyfronoidPlayer extends JFrame {
 
     private String getLabelFor(String propertyKey, Object... arguments) {
         return Resources.PLAYER.get(propertyKey, arguments);
+    }
+
+    private void setPlayPauseButtonImage() {
+        if(musicPlayer.isPlaying()) {
+            playPauseButton.setIcon(Icons.PAUSE_ARROW.getImageIcon());
+        } else {
+            playPauseButton.setIcon(Icons.PLAY_ARROW.getImageIcon());
+        }
     }
 
     private class PlayerWindowListener extends WindowAdapter {

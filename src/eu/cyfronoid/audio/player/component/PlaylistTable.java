@@ -21,9 +21,15 @@ public class PlaylistTable extends JTable {
     private Playlist playlist;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
+    public PlaylistTable() {
+        this(false);
+    }
+
     public PlaylistTable(boolean isTreeSelectionListener) {
         playlist = new Playlist(isTreeSelectionListener);
-        eventBus.register(playlist);
+        if(isTreeSelectionListener) {
+            eventBus.register(playlist);
+        }
         setModel(playlist);
         addMouseListener(new PlaylistPopupListener());
     }

@@ -53,6 +53,7 @@ public class PlayerConfigurator extends AbstractModule {
     protected void configure() {
         bind(ConfigProperties.class).toProvider(PlayerConfigPropertiesProvider.class);
         bind(EventBus.class).in(Singleton.class);
+        bind(MusicPlayer.class).in(Singleton.class);
     }
 
     private PlayerConfigurator() {

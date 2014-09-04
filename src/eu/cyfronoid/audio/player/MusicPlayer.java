@@ -26,6 +26,7 @@ import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
 import eu.cyfronoid.audio.player.song.Song;
+import eu.cyfronoid.gui.tableModel.TableElement;
 
 public class MusicPlayer {
     private static final Logger logger = Logger.getLogger(MusicPlayer.class);
@@ -265,6 +266,10 @@ public class MusicPlayer {
 
     public void setAnalyzer(AnalyzerDialog analyzerTest) {
         this.analyzer = analyzerTest;
+    }
+
+    public boolean isPlaying(TableElement element) {
+        return ((Song)element).equals(actualSong);
     }
 
 }

@@ -17,6 +17,8 @@ import com.google.common.collect.ImmutableList.Builder;
 import com.google.common.collect.Lists;
 import com.google.common.eventbus.Subscribe;
 
+import eu.cyfronoid.audio.player.MusicPlayer;
+import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.PlayingProgress.PlaybackProgressFormatter;
 import eu.cyfronoid.audio.player.event.TreeSelectedEvent;
 import eu.cyfronoid.audio.player.song.Song;
@@ -30,6 +32,7 @@ public class Playlist extends CommonTableModel {
     private static final Logger logger = Logger.getLogger(Playlist.class);
     private static final long serialVersionUID = -4308819424320624481L;
     private static final List<String> columnNames;
+    private static final MusicPlayer musicPlayer = PlayerConfigurator.injector.getInstance(MusicPlayer.class);
     static {
          Builder<String> columnNamesBuilder = ImmutableList.<String>builder();
          for(Column column : Column.values()) {
@@ -66,14 +69,16 @@ public class Playlist extends CommonTableModel {
         }
     }
 
-    private void setFiles(List<File> files) throws IOException {
+    public void setFiles(List<File> files) throws IOException {
         clearResources();
         setElements(tranformToModel(files));
     }
 
     private void clearResources() throws IOException {
         for(TableElement element : getAllElements()) {
-            ((Song) element).close();
+            if(!musicPlayer.isPlaying(element)) {
+                ((Song) element).close();
+            }
         }
     }
 
