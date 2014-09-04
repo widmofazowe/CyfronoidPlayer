@@ -1,0 +1,86 @@
+package eu.cyfronoid.audio.player.playlist;
+
+import java.io.File;
+import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
+
+import org.apache.log4j.Logger;
+
+import com.google.common.base.Optional;
+
+@XmlRootElement
+@XmlType(propOrder = {"name", "orderedSongs"})
+public class Playlist {
+    private final static Logger logger = Logger.getLogger(Playlist.class);
+    private String name;
+    private SortedMap<Integer, File> orderedSongs;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public SortedMap<Integer, File> getOrderedSongs() {
+        return orderedSongs;
+    }
+
+    public void swap(int x, int y) {
+        File tempX = orderedSongs.get(x);
+        orderedSongs.put(x, orderedSongs.get(y));
+        orderedSongs.put(y, tempX);
+    }
+
+    @XmlElementWrapper(name="orderedSongs")
+    public void setOrderedSongs(SortedMap<Integer, File> orderedSongs) {
+        this.orderedSongs = orderedSongs;
+    }
+
+    public static Optional<Playlist> loadPlaylist(File file) {
+        Playlist playlist = null;
+        JAXBContext jaxbContext;
+        if(!file.exists() || !file.isFile()) {
+            return Optional.absent();
+        }
+        try {
+            jaxbContext = JAXBContext.newInstance(Playlist.class);
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+            playlist = (Playlist) jaxbUnmarshaller.unmarshal(file);
+            logger.debug("Unmarchalled: " + file.getPath());
+        } catch (JAXBException e) {
+            logger.error(e);
+        }
+        return Optional.fromNullable(playlist);
+    }
+
+    public static void main(String[] argv) {
+        Playlist playlist = new Playlist();
+        playlist.setName("Nowa");
+        SortedMap<Integer, File> sortedMap = new TreeMap<>();
+        sortedMap.put(2, new File("asdf"));
+        sortedMap.put(4, new File("as/asdf"));
+        sortedMap.put(3, new File("as/as/asdf"));
+        sortedMap.put(1, new File("wq/as/asdf"));
+        playlist.setOrderedSongs(sortedMap);
+        JAXBContext jaxbContext;
+        try {
+            jaxbContext = JAXBContext.newInstance(Playlist.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            jaxbMarshaller.marshal(playlist, System.out);
+
+        } catch (JAXBException e) {
+            logger.error(e);
+        }
+    }
+}

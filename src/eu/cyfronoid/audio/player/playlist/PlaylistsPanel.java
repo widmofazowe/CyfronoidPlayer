@@ -50,7 +50,12 @@ public class PlaylistsPanel extends JTabbedPane {
     }
 
     protected Optional<JTable> getSelectedPlaylistTable() {
-        return Optional.absent();
+        int selectedIndex = getSelectedIndex();
+        if(selectedIndex == -1) {
+            return Optional.absent();
+        }
+        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
+        return Optional.of(tablePerTab.get(selectedIndex));
     }
 
     public void openTab() {
