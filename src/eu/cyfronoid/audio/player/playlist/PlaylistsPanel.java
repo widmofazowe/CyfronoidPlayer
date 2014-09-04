@@ -1,8 +1,11 @@
 package eu.cyfronoid.audio.player.playlist;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -31,11 +34,12 @@ public class PlaylistsPanel extends JTabbedPane {
     private long unknownIndex = 0;
     private JTable activeTable;
 
-    public PlaylistsPanel() {
+    public PlaylistsPanel() throws IOException {
         super(JTabbedPane.TOP);
         setAutoscrolls(true);
         createTab(PlaylistTabParameters.createSelectionListener());
-        activeTable = tablePerTab.get(0);  // above statement guaranteed that there is at leased one item
+        eventBus.register(tablePerTab.get(0));  // above statement guaranteed that there is at leased one item
+        activeTable = tablePerTab.get(0);
 
         addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
@@ -58,17 +62,22 @@ public class PlaylistsPanel extends JTabbedPane {
         return Optional.of(tablePerTab.get(selectedIndex));
     }
 
-    public void openTab() {
-
+    public void openTab(File file) throws IOException {
+        Optional<Playlist> playlist = Playlist.loadPlaylist(file);
+        if(!playlist.isPresent()) {
+            JOptionPane.showMessageDialog(this, "Wrong file structure " + file);
+        }
+        createTab(new PlaylistTabParameters(playlist.get().getOrderedSongs().values(), playlist.get().getName()));
     }
 
-    public void createNewEmptyTab() {
+    public void createNewEmptyTab() throws IOException {
         createTab(PlaylistTabParameters.EMPTY_TAB);
     }
 
-    private void createTab(@NotNull PlaylistTabParameters playlistTabParameters) {
+    private void createTab(@NotNull PlaylistTabParameters playlistTabParameters) throws IOException {
         Preconditions.checkNotNull(playlistTabParameters);
         PlaylistTable playlistTable = new PlaylistTable(playlistTabParameters.isTreeSelectionListener());
+        playlistTable.setFiles(playlistTabParameters.getFiles());
         JScrollPane scrollPane = new JScrollPane(playlistTable);
         scrollPane.setBorder(null);
         scrollPane.setToolTipText("");
@@ -80,6 +89,7 @@ public class PlaylistsPanel extends JTabbedPane {
         if(name.startsWith(NEW_TAB_PREFIX)) {
             unknownTabNames.add(name);
         }
+        setSelectedIndex(tabCount);
     }
 
     private String establishName(Optional<String> name) {
@@ -91,7 +101,7 @@ public class PlaylistsPanel extends JTabbedPane {
         do {
             newName = NEW_TAB_PREFIX + unknownIndex++;
         } while(unknownTabNames.contains(newName));
-
+        unknownTabNames.add(newName);
         return newName;
     }
 }

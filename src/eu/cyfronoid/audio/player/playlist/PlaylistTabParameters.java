@@ -1,6 +1,7 @@
 package eu.cyfronoid.audio.player.playlist;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.base.Optional;
@@ -11,7 +12,7 @@ public class PlaylistTabParameters {
     public static final String TREE_SELECTION_LISTENER_NAME = "Selection Listener";
 
     private Optional<String> name;
-    private List<File> files;
+    private Collection<File> files;
     private boolean isTreeSelectionListener;
 
     public static PlaylistTabParameters createSelectionListener() {
@@ -22,15 +23,15 @@ public class PlaylistTabParameters {
         this(Lists.<File>newArrayList(), null, false);
     }
 
-    public PlaylistTabParameters(List<File> files) {
+    public PlaylistTabParameters(Collection<File> files) {
         this(files, null, false);
     }
 
-    public PlaylistTabParameters(List<File> files, String name) {
-        this(files, null, false);
+    public PlaylistTabParameters(Collection<File> files, String name) {
+        this(files, name, false);
     }
 
-    private PlaylistTabParameters(List<File> files, String name, boolean isTreeSelectionListener) {
+    private PlaylistTabParameters(Collection<File> files, String name, boolean isTreeSelectionListener) {
         this.name = Optional.fromNullable(name);
         this.files = files;
         this.isTreeSelectionListener = isTreeSelectionListener;
@@ -44,7 +45,7 @@ public class PlaylistTabParameters {
         this.name = name;
     }
 
-    public List<File> getFiles() {
+    public Collection<File> getFiles() {
         if(files == null) {
             files = Lists.newArrayList();
         }

@@ -2,6 +2,7 @@ package eu.cyfronoid.audio.player.playlist;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -49,8 +50,6 @@ public class PlaylistTableModel extends CommonTableModel {
     public PlaylistTableModel(boolean isTreeSelectionListener) {
         super(columnNames);
         this.isTreeSelectionListener = isTreeSelectionListener;
-        List<File> files = getMP3FilesFromDirectory("MusicLibrary");
-        setElements(tranformToModel(files));
     }
 
     public static List<File> getMP3FilesFromDirectory(String dir) {
@@ -69,7 +68,7 @@ public class PlaylistTableModel extends CommonTableModel {
         }
     }
 
-    public void setFiles(List<File> files) throws IOException {
+    public void setFiles(Collection<File> files) throws IOException {
         clearResources();
         setElements(tranformToModel(files));
     }
@@ -82,7 +81,7 @@ public class PlaylistTableModel extends CommonTableModel {
         }
     }
 
-    public static List<TableElement> tranformToModel(List<File> files) {
+    public static List<TableElement> tranformToModel(Collection<File> files) {
         return Lists.newArrayList(FluentIterable.from(files).transform(new FileToSongTransform<TableElement>()).toList());
     }
 

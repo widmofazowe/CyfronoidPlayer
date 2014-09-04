@@ -9,13 +9,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -50,6 +54,7 @@ public class CyfronoidPlayer extends JFrame {
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private MusicLibraryTree tree;
     private AnalyzerDialog analyzerTest;
+    private PlaylistsPanel playlistsPanel;
 
     /**
      * Launch the application.
@@ -69,8 +74,9 @@ public class CyfronoidPlayer extends JFrame {
 
     /**
      * Create the application.
+     * @throws IOException
      */
-    public CyfronoidPlayer() {
+    public CyfronoidPlayer() throws IOException {
         Dimension windowDimension = PlayerConfigurator.SETTINGS.getWindowDimension();
         Dimension defaultDimension = DefaultSettings.INSTANCE.getDimension();
         if(windowDimension == null) {
@@ -85,8 +91,9 @@ public class CyfronoidPlayer extends JFrame {
 
     /**
      * Initialize the contents of the frame.
+     * @throws IOException
      */
-    private void initialize() {
+    private void initialize() throws IOException {
         setBounds(100, 100, 750, 400);
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setIconImage(PlayerConfigurator.APPLICATION_ICON.getImage());
@@ -96,6 +103,29 @@ public class CyfronoidPlayer extends JFrame {
 
         JMenu fileMenu = new JMenu(getLabelFor(PropertyKey.FILE_MENU));
         menuBar.add(fileMenu);
+
+        JMenuItem openMenuItem = new JMenuItem(getLabelFor(PropertyKey.OPEN));
+        openMenuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                final JFileChooser fc = new JFileChooser();
+                int returnVal = fc.showOpenDialog(CyfronoidPlayer.this);
+
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File file = fc.getSelectedFile();
+                    logger.info("Opening: " + file.getName() + ".");
+                    try {
+                        playlistsPanel.openTab(file);
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(CyfronoidPlayer.this, "File " + file + " is not correct format of playlist.");
+                        logger.warn("Problem while loading playlist " + file);
+                    }
+                }
+            }
+
+        });
+        fileMenu.add(openMenuItem);
 
         JMenuItem exitMenuItem = new JMenuItem(getLabelFor(PropertyKey.EXIT));
         exitMenuItem.addActionListener(CommonActionListener.SEND_CLOSE_EVENT.get(this));
@@ -122,7 +152,7 @@ public class CyfronoidPlayer extends JFrame {
         layeredPane.add(panel, BorderLayout.CENTER);
         panel.setLayout(new BorderLayout(0, 0));
 
-        PlaylistsPanel playlistsPanel = new PlaylistsPanel();
+        playlistsPanel = new PlaylistsPanel();
         panel.add(playlistsPanel);
 
         tree = new MusicLibraryTree();

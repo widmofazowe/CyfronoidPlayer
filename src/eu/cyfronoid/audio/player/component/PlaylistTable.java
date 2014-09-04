@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.util.Collection;
 
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
@@ -37,6 +40,10 @@ public class PlaylistTable extends JTable {
         }
         setModel(playlist);
         addMouseListener(new PlaylistPopupListener());
+    }
+
+    public void setFiles(Collection<File> files) throws IOException {
+        playlist.setFiles(files);
     }
 
     @Subscribe

@@ -65,12 +65,12 @@ public class Playlist {
 
     public static void main(String[] argv) {
         Playlist playlist = new Playlist();
-        playlist.setName("Nowa");
+        playlist.setName("Test");
         SortedMap<Integer, File> sortedMap = new TreeMap<>();
-        sortedMap.put(2, new File("asdf"));
-        sortedMap.put(4, new File("as/asdf"));
-        sortedMap.put(3, new File("as/as/asdf"));
-        sortedMap.put(1, new File("wq/as/asdf"));
+        sortedMap.put(2, new File("MusicLibrary/Disturbed/Disturbed - Stupify.mp3"));
+        sortedMap.put(4, new File("MusicLibrary/Black Label/Black Label Society - Fire It Up.mp3"));
+        sortedMap.put(3, new File("MusicLibrary/Black Label/Black Label Society - Death March.mp3"));
+        sortedMap.put(1, new File("MusicLibrary/Disturbed/Disturbed - The Game.mp3"));
         playlist.setOrderedSongs(sortedMap);
         JAXBContext jaxbContext;
         try {
