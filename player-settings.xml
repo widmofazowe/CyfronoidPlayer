@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <settings xmlns:ns2="eu.cyfronoid.audio.player.resources.Settings">
-    <windowDimension>1062.0:600.0</windowDimension>
+    <windowDimension>800.0:600.0</windowDimension>
     <musicLibraryDirectories>
         <directory>MusicLibrary</directory>
     </musicLibraryDirectories>

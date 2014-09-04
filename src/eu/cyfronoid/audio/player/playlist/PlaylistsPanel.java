@@ -1,7 +1,14 @@
 package eu.cyfronoid.audio.player.playlist;
 
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.dnd.DnDConstants;
+import java.awt.dnd.DropTarget;
+import java.awt.dnd.DropTargetAdapter;
+import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +18,9 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.tree.DefaultMutableTreeNode;
+
+import org.apache.log4j.Logger;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
@@ -26,6 +36,7 @@ import eu.cyfronoid.framework.validator.annotation.NotNull;
 
 public class PlaylistsPanel extends JTabbedPane {
     private static final long serialVersionUID = -1380190314932473388L;
+    private static final Logger logger = Logger.getLogger(PlaylistsPanel.class);
     private static final String NEW_TAB_PREFIX = "New Tab ";
     private Map<Integer, JTable> tablePerTab = Maps.newHashMap();
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
@@ -51,6 +62,8 @@ public class PlaylistsPanel extends JTabbedPane {
                 }
             }
         });
+
+        new MusicTreeDropTargetListener(this);
     }
 
     protected Optional<JTable> getSelectedPlaylistTable() {
@@ -109,6 +122,33 @@ public class PlaylistsPanel extends JTabbedPane {
         } while(unknownTabNames.contains(newName));
         unknownTabNames.add(newName);
         return newName;
+    }
+
+
+    private static class MusicTreeDropTargetListener extends DropTargetAdapter {
+
+        public MusicTreeDropTargetListener(PlaylistsPanel panel) {
+            new DropTarget(panel, DnDConstants.ACTION_COPY, this, true, null);
+        }
+
+        @Override
+        public void drop(DropTargetDropEvent event) {
+
+            try {
+                Transferable tr = event.getTransferable();
+                DataFlavor[] transferDataFlavors = tr.getTransferDataFlavors();
+                for(DataFlavor flavor : transferDataFlavors) {
+                    logger.debug(flavor.getMimeType() + " " + flavor.getDefaultRepresentationClass());
+                }
+                InputStream transferData = (InputStream)tr.getTransferData(new DataFlavor(InputStream.class, "DefaultMutableTreeNode"));
+                logger.debug(transferData);
+
+                // transferDate = the name of the dropped object as a string;
+
+            } catch (Exception e) {
+                logger.warn(e);
+            }
+        }
     }
 
 }

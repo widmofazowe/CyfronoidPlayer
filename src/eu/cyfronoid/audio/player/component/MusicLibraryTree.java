@@ -6,6 +6,8 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.apache.log4j.Logger;
+
 import com.google.common.eventbus.EventBus;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
@@ -18,6 +20,7 @@ import eu.cyfronoid.gui.tree.TreeState;
 
 public class MusicLibraryTree extends JTree implements TreeSelectionListener {
     private static final long serialVersionUID = 5107297933537534482L;
+    private static final Logger logger = Logger.getLogger(MusicLibraryTree.class);
     private SongTreeModel model;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
@@ -25,7 +28,7 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
         model = new SongTreeModel(SongLibrary.INSTANCE.buildTree());
         setModel(model);
         //setRootVisible(false);
-
+        setDragEnabled(true);
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
@@ -39,6 +42,7 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
             }
 
         });
+
 
     }
 
