@@ -30,6 +30,7 @@ import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
+import eu.cyfronoid.audio.player.event.Events.NewPlaylistEvent;
 import eu.cyfronoid.audio.player.event.Events.PlaylistOpenDialogShowEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
@@ -180,6 +181,11 @@ public class CyfronoidPlayer extends JFrame {
         } else {
             playPauseButton.setIcon(Icons.PLAY_ARROW.getImageIcon());
         }
+    }
+
+    @Subscribe
+    public void newPlaylist(NewPlaylistEvent event) throws IOException {
+        playlistsPanel.createNewEmptyTab();
     }
 
     @Subscribe

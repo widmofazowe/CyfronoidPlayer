@@ -26,7 +26,7 @@ public class PlayerMenu extends JMenuBar {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                eventBus.post(Events.playlistSaveDialog);
+                eventBus.post(Events.newPlaylist);
             }
 
         });

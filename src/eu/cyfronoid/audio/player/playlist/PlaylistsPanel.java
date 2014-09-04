@@ -110,4 +110,5 @@ public class PlaylistsPanel extends JTabbedPane {
         unknownTabNames.add(newName);
         return newName;
     }
+
 }
