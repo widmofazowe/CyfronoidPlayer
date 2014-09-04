@@ -56,6 +56,10 @@ public class PlayerConfigurator extends AbstractModule {
         bind(MusicPlayer.class).in(Singleton.class);
     }
 
+    public static String getLabelFor(String propertyKey, Object... arguments) {
+        return Resources.PLAYER.get(propertyKey, arguments);
+    }
+
     private PlayerConfigurator() {
         DOMConfigurator.configure("configuration/log4j.xml");
         Scheduler.INSTANCE.startTask(new ThreadsDump());

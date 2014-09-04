@@ -16,9 +16,6 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLayeredPane;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -33,17 +30,16 @@ import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
+import eu.cyfronoid.audio.player.event.Events.PlaylistOpenDialogShowEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
 import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
-import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.scheduler.Scheduler;
 import eu.cyfronoid.framework.util.ExceptionHelper;
-import eu.cyfronoid.gui.action.CommonActionListener;
 import eu.cyfronoid.gui.tree.TreeState;
 
 public class CyfronoidPlayer extends JFrame {
@@ -98,51 +94,9 @@ public class CyfronoidPlayer extends JFrame {
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setIconImage(PlayerConfigurator.APPLICATION_ICON.getImage());
         setTitle(PlayerConfigurator.APP_NAME);
-        JMenuBar menuBar = new JMenuBar();
-        setJMenuBar(menuBar);
 
-        JMenu fileMenu = new JMenu(getLabelFor(PropertyKey.FILE_MENU));
-        menuBar.add(fileMenu);
-
-        JMenuItem openMenuItem = new JMenuItem(getLabelFor(PropertyKey.OPEN));
-        openMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                final JFileChooser fc = new JFileChooser();
-                int returnVal = fc.showOpenDialog(CyfronoidPlayer.this);
-
-                if (returnVal == JFileChooser.APPROVE_OPTION) {
-                    File file = fc.getSelectedFile();
-                    logger.info("Opening: " + file.getName() + ".");
-                    try {
-                        playlistsPanel.openTab(file);
-                    } catch (IOException ex) {
-                        JOptionPane.showMessageDialog(CyfronoidPlayer.this, "File " + file + " is not correct format of playlist.");
-                        logger.warn("Problem while loading playlist " + file);
-                    }
-                }
-            }
-
-        });
-        fileMenu.add(openMenuItem);
-
-        JMenuItem exitMenuItem = new JMenuItem(getLabelFor(PropertyKey.EXIT));
-        exitMenuItem.addActionListener(CommonActionListener.SEND_CLOSE_EVENT.get(this));
-        fileMenu.add(exitMenuItem);
-
-        JMenu helpMenu = new JMenu(getLabelFor(PropertyKey.HELP_MENU));
-        menuBar.add(helpMenu);
-
-        JMenuItem aboutMenuItem = new JMenuItem(getLabelFor(PropertyKey.ABOUT));
-        aboutMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                PlayerConfigurator.ABOUT_DIALOG.open();
-            }
-        });
-        helpMenu.add(aboutMenuItem);
+        PlayerMenu playerMenu = new PlayerMenu();
+        setJMenuBar(playerMenu);
 
         JLayeredPane layeredPane = new JLayeredPane();
         getContentPane().add(layeredPane, BorderLayout.CENTER);
@@ -217,7 +171,7 @@ public class CyfronoidPlayer extends JFrame {
     }
 
     private String getLabelFor(String propertyKey, Object... arguments) {
-        return Resources.PLAYER.get(propertyKey, arguments);
+        return PlayerConfigurator.getLabelFor(propertyKey, arguments);
     }
 
     private void setPlayPauseButtonImage() {
@@ -225,6 +179,23 @@ public class CyfronoidPlayer extends JFrame {
             playPauseButton.setIcon(Icons.PAUSE_ARROW.getImageIcon());
         } else {
             playPauseButton.setIcon(Icons.PLAY_ARROW.getImageIcon());
+        }
+    }
+
+    @Subscribe
+    public void openPlaylist(PlaylistOpenDialogShowEvent event) {
+        final JFileChooser fc = new JFileChooser();
+        int returnVal = fc.showOpenDialog(CyfronoidPlayer.this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            logger.info("Opening: " + file.getName() + ".");
+            try {
+                playlistsPanel.openTab(file);
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(CyfronoidPlayer.this, "File " + file + " is not correct format of playlist.");
+                logger.warn("Problem while loading playlist " + file);
+            }
         }
     }
 

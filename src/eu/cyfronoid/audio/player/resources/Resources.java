@@ -45,6 +45,7 @@ public enum Resources {
         public static final String PLAY = "play";
         public static final String PAUSE = "pause";
         public static final String OPEN = "open";
+        public static final String NEW = "new";
     }
 
     public static Collection<ThirdPartyDependency> THIRD_PARTY_DEPENDENCIES = Collections.emptyList();

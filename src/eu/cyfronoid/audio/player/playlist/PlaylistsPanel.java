@@ -66,8 +66,14 @@ public class PlaylistsPanel extends JTabbedPane {
         Optional<Playlist> playlist = Playlist.loadPlaylist(file);
         if(!playlist.isPresent()) {
             JOptionPane.showMessageDialog(this, "Wrong file structure " + file);
+            return;
         }
-        createTab(new PlaylistTabParameters(playlist.get().getOrderedSongs().values(), playlist.get().getName()));
+        String name = playlist.get().getName();
+        if(openedPlaylistTables.containsValue(name)) {
+            JOptionPane.showMessageDialog(this, "Cannot open two playlists with the same name " + name);
+            return;
+        }
+        createTab(new PlaylistTabParameters(playlist.get().getOrderedSongs().values(), name));
     }
 
     public void createNewEmptyTab() throws IOException {
