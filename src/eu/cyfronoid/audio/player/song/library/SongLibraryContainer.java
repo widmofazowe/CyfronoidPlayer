@@ -3,7 +3,7 @@ package eu.cyfronoid.audio.player.song.library;
 import java.io.File;
 import java.util.List;
 
-import eu.cyfronoid.audio.player.playlist.Playlist;
+import eu.cyfronoid.audio.player.playlist.PlaylistTableModel;
 
 public class SongLibraryContainer implements SongLibraryNode {
     private File file;
@@ -25,6 +25,6 @@ public class SongLibraryContainer implements SongLibraryNode {
 
     @Override
     public List<File> getMP3Files() {
-        return Playlist.getMP3FilesFromDirectory(file);
+        return PlaylistTableModel.getMP3FilesFromDirectory(file);
     }
 }

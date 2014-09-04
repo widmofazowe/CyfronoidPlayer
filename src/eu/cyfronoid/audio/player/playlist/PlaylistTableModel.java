@@ -28,8 +28,8 @@ import eu.cyfronoid.framework.util.FileUtil;
 import eu.cyfronoid.gui.tableModel.CommonTableModel;
 import eu.cyfronoid.gui.tableModel.TableElement;
 
-public class Playlist extends CommonTableModel {
-    private static final Logger logger = Logger.getLogger(Playlist.class);
+public class PlaylistTableModel extends CommonTableModel {
+    private static final Logger logger = Logger.getLogger(PlaylistTableModel.class);
     private static final long serialVersionUID = -4308819424320624481L;
     private static final List<String> columnNames;
     private static final MusicPlayer musicPlayer = PlayerConfigurator.injector.getInstance(MusicPlayer.class);
@@ -42,11 +42,11 @@ public class Playlist extends CommonTableModel {
     }
     private boolean isTreeSelectionListener = false;
 
-    public Playlist() {
+    public PlaylistTableModel() {
         this(false);
     }
 
-    public Playlist(boolean isTreeSelectionListener) {
+    public PlaylistTableModel(boolean isTreeSelectionListener) {
         super(columnNames);
         this.isTreeSelectionListener = isTreeSelectionListener;
         List<File> files = getMP3FilesFromDirectory("MusicLibrary");

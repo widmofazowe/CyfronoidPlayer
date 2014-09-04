@@ -9,7 +9,7 @@ import org.apache.log4j.Logger;
 import com.google.common.collect.Multimap;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
-import eu.cyfronoid.audio.player.playlist.Playlist.MP3FileFilter;
+import eu.cyfronoid.audio.player.playlist.PlaylistTableModel.MP3FileFilter;
 import eu.cyfronoid.framework.util.FileUtil;
 
 public enum SongLibrary {

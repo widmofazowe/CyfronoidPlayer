@@ -16,14 +16,14 @@ import com.google.common.eventbus.Subscribe;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
-import eu.cyfronoid.audio.player.playlist.Playlist;
+import eu.cyfronoid.audio.player.playlist.PlaylistTableModel;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
 
 public class PlaylistTable extends JTable {
     private static final long serialVersionUID = -1614591239377223113L;
-    private Playlist playlist;
+    private PlaylistTableModel playlist;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
     public PlaylistTable() {
@@ -31,7 +31,7 @@ public class PlaylistTable extends JTable {
     }
 
     public PlaylistTable(boolean isTreeSelectionListener) {
-        playlist = new Playlist(isTreeSelectionListener);
+        playlist = new PlaylistTableModel(isTreeSelectionListener);
         if(isTreeSelectionListener) {
             eventBus.register(playlist);
         }

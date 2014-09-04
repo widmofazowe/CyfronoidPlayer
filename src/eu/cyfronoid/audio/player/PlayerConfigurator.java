@@ -34,7 +34,7 @@ import eu.cyfronoid.gui.image.TransparentImage;
 
 public class PlayerConfigurator extends AbstractModule {
     private static final Logger logger = Logger.getLogger(PlayerConfigurator.class);
-    public static final String SETTINGS_FILE = "settings.xml";
+    public static final String SETTINGS_FILE = "player-settings.xml";
     public static final String APP_NAME = "Cyfronoid Player";
     public static final Settings SETTINGS;
     public static final Injector injector = Guice.createInjector(new PlayerConfigurator());

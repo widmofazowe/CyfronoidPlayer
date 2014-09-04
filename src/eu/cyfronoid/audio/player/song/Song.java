@@ -10,7 +10,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import eu.cyfronoid.audio.player.playlist.Playlist;
+import eu.cyfronoid.audio.player.playlist.PlaylistTableModel;
 import eu.cyfronoid.gui.tableModel.TableElement;
 
 public class Song implements TableElement {
@@ -35,7 +35,7 @@ public class Song implements TableElement {
     }
 
     private void populateTableProperties() {
-        for(Playlist.Column column : Playlist.Column.values()) {
+        for(PlaylistTableModel.Column column : PlaylistTableModel.Column.values()) {
             tableProperties.put(column.columnName, column.format(songProperties.get(column.property)));
         }
     }
@@ -97,7 +97,7 @@ public class Song implements TableElement {
 
     @Override
     public Object getAttributeValue(String columnName) {
-        if(columnName.equals(Playlist.Column.FILE_NAME.columnName)) {
+        if(columnName.equals(PlaylistTableModel.Column.FILE_NAME.columnName)) {
             return file.getName();
         }
         return tableProperties.get(columnName);

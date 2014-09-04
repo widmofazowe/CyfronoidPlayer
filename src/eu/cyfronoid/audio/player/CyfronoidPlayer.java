@@ -169,6 +169,7 @@ public class CyfronoidPlayer extends JFrame {
 
     @Subscribe
     public void songChanged(SongChangeEvent event) {
+        setPlayPauseButtonImage();
         setTitle(PlayerConfigurator.APP_NAME + " - " + event.getSong());
     }
 
