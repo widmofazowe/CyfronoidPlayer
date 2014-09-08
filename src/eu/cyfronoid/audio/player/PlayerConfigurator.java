@@ -28,7 +28,6 @@ import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.resources.Settings;
 import eu.cyfronoid.framework.configuration.ConfigProperties;
 import eu.cyfronoid.framework.scheduler.Scheduler;
-import eu.cyfronoid.framework.scheduler.ThreadsDump;
 import eu.cyfronoid.gui.about.SimpleAboutDialog;
 import eu.cyfronoid.gui.image.TransparentImage;
 
@@ -54,6 +53,7 @@ public class PlayerConfigurator extends AbstractModule {
         bind(ConfigProperties.class).toProvider(PlayerConfigPropertiesProvider.class);
         bind(EventBus.class).in(Singleton.class);
         bind(MusicPlayer.class).in(Singleton.class);
+        bind(Scheduler.class).in(Singleton.class);
     }
 
     public static String getLabelFor(String propertyKey, Object... arguments) {
@@ -62,7 +62,6 @@ public class PlayerConfigurator extends AbstractModule {
 
     private PlayerConfigurator() {
         DOMConfigurator.configure("configuration/log4j.xml");
-        Scheduler.INSTANCE.startTask(new ThreadsDump());
     }
 
     static {

@@ -9,10 +9,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.log4j.Logger;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.model.SongTreeModel;
 import eu.cyfronoid.audio.player.event.TreeSelectedEvent;
+import eu.cyfronoid.audio.player.event.UpdateTreeEvent;
 import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
 import eu.cyfronoid.audio.player.song.library.SongLibrary;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
@@ -23,6 +25,7 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
     private static final Logger logger = Logger.getLogger(MusicLibraryTree.class);
     private SongTreeModel model;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
+    private TreeState treeState;
 
     public MusicLibraryTree() {
         model = new SongTreeModel(SongLibrary.INSTANCE.buildTree());
@@ -63,6 +66,20 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
 
     private void setSelectionListeners() {
         addTreeSelectionListener(this);
+    }
+
+    @Subscribe
+    public void updateTree(final UpdateTreeEvent event) {
+        SwingUtilities.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                String expansionState = treeState.getExpansionState();
+                model.setRoot(event.getRoot());
+                treeState.setExpansionState(expansionState);
+            }
+
+        });
     }
 
 }

@@ -40,6 +40,7 @@ import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.scheduler.Scheduler;
+import eu.cyfronoid.framework.scheduler.ThreadsDump;
 import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.gui.tree.TreeState;
 
@@ -52,6 +53,7 @@ public class CyfronoidPlayer extends JFrame {
     private MusicLibraryTree tree;
     private AnalyzerDialog analyzerTest;
     private PlaylistsPanel playlistsPanel;
+    private Scheduler scheduler;
 
     /**
      * Launch the application.
@@ -84,6 +86,8 @@ public class CyfronoidPlayer extends JFrame {
         setSize(windowDimension);
         setMinimumSize(defaultDimension);
         initialize();
+        scheduler = PlayerConfigurator.injector.getInstance(Scheduler.class);
+        scheduler.startTask(new ThreadsDump());
     }
 
     /**
@@ -228,7 +232,8 @@ public class CyfronoidPlayer extends JFrame {
             actualSelections.setExpansionState(state.getExpansionState());
             PlayerConfigurator.SETTINGS.setWindowDimension(getSize());
             PlayerConfigurator.saveSettings();
-            Scheduler.INSTANCE.stop();
+
+            scheduler.stop();
             logger.debug("Closing application");
             System.exit(0);
         }
