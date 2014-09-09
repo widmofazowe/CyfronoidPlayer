@@ -29,6 +29,8 @@ public class PlaylistTable extends JTable {
     private PlaylistTableModel playlist;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private boolean isTreeSelectionListener;
+    private boolean hasUnsavedModifications = false;
+    private String tableName;
 
     public PlaylistTable() {
         this(false);
@@ -45,11 +47,18 @@ public class PlaylistTable extends JTable {
     }
 
     public void setFiles(Collection<File> files) throws IOException {
+        setHasUnsavedModifications(true);
         playlist.setFiles(files);
     }
 
     public void addFiles(Collection<File> files) throws IOException {
+        setHasUnsavedModifications(true);
         playlist.addFiles(files);
+    }
+
+    public void save() {
+        setHasUnsavedModifications(false);
+        //TODO
     }
 
     @Subscribe
@@ -139,6 +148,23 @@ public class PlaylistTable extends JTable {
 
     public boolean isTreeSelectionListener() {
         return isTreeSelectionListener;
+    }
+
+    public boolean hasUnsavedModifications() {
+        return hasUnsavedModifications;
+    }
+
+    public void setHasUnsavedModifications(boolean hasUnsavedModifications) {
+        this.hasUnsavedModifications = hasUnsavedModifications;
+    }
+
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
+    }
+
+    @Override
+    public String toString() {
+        return tableName + ((hasUnsavedModifications) ? " *" : "");
     }
 
 }

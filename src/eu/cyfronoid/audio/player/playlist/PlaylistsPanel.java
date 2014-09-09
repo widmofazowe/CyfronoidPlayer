@@ -104,6 +104,7 @@ public class PlaylistsPanel extends JTabbedPane {
         int tabCount = getTabCount();
         tablePerTab.put(tabCount, playlistTable);
         String name = establishName(playlistTabParameters.getName());
+        playlistTable.setTableName(name);
         openedPlaylistTables.put(tabCount, name);
         addTab(name, null, scrollPane, null);
         if(name.startsWith(NEW_TAB_PREFIX)) {
@@ -137,6 +138,7 @@ public class PlaylistsPanel extends JTabbedPane {
             try {
                 Transferable tr = event.getTransferable();
                 Optional<PlaylistTable> selectedPlaylistTable = getSelectedPlaylistTable();
+                int selectedIndex = getSelectedIndex();
                 if(!selectedPlaylistTable.isPresent()) {
                     return;
                 }
@@ -145,17 +147,28 @@ public class PlaylistsPanel extends JTabbedPane {
                     logger.debug("Dropping files to selection listener is not supported.");
                     return;
                 }
-                DefaultMutableTreeNode[] transferData = (DefaultMutableTreeNode[])tr.getTransferData(MusicLibraryTree.NODES_FLAVOR);
+                DefaultMutableTreeNode[] transferData = (DefaultMutableTreeNode[]) tr.getTransferData(MusicLibraryTree.NODES_FLAVOR);
                 for(DefaultMutableTreeNode node : transferData) {
                     SongLibraryNode userObject = (SongLibraryNode) node.getUserObject();
                     logger.debug("Droped " + userObject + " to Active Playlist");
                     playlistTable.addFiles(userObject.getMP3Files());
+                    updateTabLabel(selectedIndex);
                 }
 
             } catch (Exception e) {
                 logger.warn(ExceptionHelper.getStackTrace(e));
             }
         }
+    }
+
+    public void updateTabsLabels() {
+        for(int i = 1; i < getTabCount(); ++i) {
+            updateTabLabel(i);
+        }
+    }
+
+    private void updateTabLabel(int i) {
+        setTitleAt(i, tablePerTab.get(i).toString());
     }
 
 }
