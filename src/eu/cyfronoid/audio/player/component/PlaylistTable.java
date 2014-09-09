@@ -28,12 +28,14 @@ public class PlaylistTable extends JTable {
     private static final long serialVersionUID = -1614591239377223113L;
     private PlaylistTableModel playlist;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
+    private boolean isTreeSelectionListener;
 
     public PlaylistTable() {
         this(false);
     }
 
     public PlaylistTable(boolean isTreeSelectionListener) {
+        this.isTreeSelectionListener = isTreeSelectionListener;
         playlist = new PlaylistTableModel(isTreeSelectionListener);
         if(isTreeSelectionListener) {
             eventBus.register(playlist);
@@ -134,4 +136,9 @@ public class PlaylistTable extends JTable {
         int modelElementIndex = convertRowIndexToModel(selectedRow);
         return Optional.of(modelElementIndex);
     }
+
+    public boolean isTreeSelectionListener() {
+        return isTreeSelectionListener;
+    }
+
 }

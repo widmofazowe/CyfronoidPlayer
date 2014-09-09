@@ -1,6 +1,5 @@
 package eu.cyfronoid.audio.player.playlist;
 
-import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
@@ -137,15 +136,15 @@ public class PlaylistsPanel extends JTabbedPane {
 
             try {
                 Transferable tr = event.getTransferable();
-                DataFlavor[] transferDataFlavors = tr.getTransferDataFlavors();
-                for(DataFlavor flavor : transferDataFlavors) {
-                    logger.debug(flavor.getMimeType() + " " + flavor.getDefaultRepresentationClass());
-                }
                 Optional<PlaylistTable> selectedPlaylistTable = getSelectedPlaylistTable();
                 if(!selectedPlaylistTable.isPresent()) {
                     return;
                 }
                 PlaylistTable playlistTable = selectedPlaylistTable.get();
+                if(playlistTable.isTreeSelectionListener()) {
+                    logger.debug("Dropping files to selection listener is not supported.");
+                    return;
+                }
                 DefaultMutableTreeNode[] transferData = (DefaultMutableTreeNode[])tr.getTransferData(MusicLibraryTree.NODES_FLAVOR);
                 for(DefaultMutableTreeNode node : transferData) {
                     SongLibraryNode userObject = (SongLibraryNode) node.getUserObject();
