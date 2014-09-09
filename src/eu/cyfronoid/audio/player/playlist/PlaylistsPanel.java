@@ -67,15 +67,6 @@ public class PlaylistsPanel extends JTabbedPane {
         new MusicTreeDropTargetListener(this);
     }
 
-    protected Optional<PlaylistTable> getSelectedPlaylistTable() {
-        int selectedIndex = getSelectedIndex();
-        if(selectedIndex == -1) {
-            return Optional.absent();
-        }
-        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
-        return Optional.of(tablePerTab.get(selectedIndex));
-    }
-
     public void openTab(File file) throws IOException {
         Optional<Playlist> playlist = Playlist.loadPlaylist(file);
         if(!playlist.isPresent()) {
@@ -159,6 +150,15 @@ public class PlaylistsPanel extends JTabbedPane {
                 logger.warn(ExceptionHelper.getStackTrace(e));
             }
         }
+    }
+
+    protected Optional<PlaylistTable> getSelectedPlaylistTable() {
+        int selectedIndex = getSelectedIndex();
+        if(selectedIndex == -1) {
+            return Optional.absent();
+        }
+        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
+        return Optional.of(tablePerTab.get(selectedIndex));
     }
 
     public void updateTabsLabels() {
