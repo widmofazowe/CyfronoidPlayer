@@ -9,7 +9,6 @@ import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
-import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -33,7 +32,8 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
     private SongTreeModel model;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private TreeState treeState;
-    private static final DataFlavor NODES_FLAVOR;
+    public static final DataFlavor NODES_FLAVOR;
+    private static DataFlavor[] flavors;
 
     static {
         String mimeType = DataFlavor.javaJVMLocalObjectMimeType +
@@ -41,6 +41,7 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
                     "\"";
         try {
             NODES_FLAVOR = new DataFlavor(mimeType);
+            flavors = new DataFlavor[]{NODES_FLAVOR};
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
@@ -50,8 +51,10 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
         model = new SongTreeModel(SongLibrary.INSTANCE.buildTree());
         setModel(model);
         //setRootVisible(false);
-        setDragEnabled(true);
+
         setTransferHandler(new MusicLibraryTreeTransferHandler());
+        setDragEnabled(true);
+
         SwingUtilities.invokeLater(new Runnable() {
 
             @Override
@@ -102,18 +105,23 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
         });
     }
 
-    private static class MusicLibraryTreeTransferHandler extends TransferHandler {
+
+    public class MusicLibraryTreeTransferHandler extends TransferHandler {
         private static final long serialVersionUID = -7524926382207466058L;
-
-        private static DataFlavor[] flavors = new DataFlavor[1];
-
-        static {
-            flavors[0] = NODES_FLAVOR;
-        }
 
         @Override
         public boolean canImport(TransferHandler.TransferSupport info) {
-            return info.isDataFlavorSupported(NODES_FLAVOR);
+            return true;
+        }
+
+        @Override
+        public boolean canImport(JComponent dest, DataFlavor[] flavors) {
+            return true;
+        }
+
+        @Override
+        public int getSourceActions(JComponent comp) {
+            return COPY;
         }
 
         @Override
@@ -134,18 +142,8 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
             return null;
         }
 
-        @Override
-        public boolean importData(TransferHandler.TransferSupport info) {
-            if (!info.isDrop()) {
-                return false;
-            }
-
-            System.out.println("as");
-            return true;
-        }
-
         public class NodesTransferable implements Transferable {
-            DefaultMutableTreeNode[] nodes;
+            private DefaultMutableTreeNode[] nodes;
 
             public NodesTransferable(DefaultMutableTreeNode[] nodes) {
                 this.nodes = nodes;
@@ -170,4 +168,5 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
             }
         }
     }
+
 }

@@ -8,7 +8,6 @@ import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,14 +30,17 @@ import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
+import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
+import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.framework.validator.annotation.NotNull;
 
 public class PlaylistsPanel extends JTabbedPane {
     private static final long serialVersionUID = -1380190314932473388L;
     private static final Logger logger = Logger.getLogger(PlaylistsPanel.class);
     private static final String NEW_TAB_PREFIX = "New Tab ";
-    private Map<Integer, JTable> tablePerTab = Maps.newHashMap();
+    private Map<Integer, PlaylistTable> tablePerTab = Maps.newHashMap();
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private BiMap<Integer, String> openedPlaylistTables = HashBiMap.create();
     private Set<String> unknownTabNames = Sets.newHashSet();
@@ -54,7 +56,7 @@ public class PlaylistsPanel extends JTabbedPane {
 
         addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
-                Optional<JTable> newPlaylistTable = getSelectedPlaylistTable();
+                Optional<PlaylistTable> newPlaylistTable = getSelectedPlaylistTable();
                 if(newPlaylistTable.isPresent()) {
                     eventBus.unregister(activeTable);
                     activeTable = newPlaylistTable.get();
@@ -66,7 +68,7 @@ public class PlaylistsPanel extends JTabbedPane {
         new MusicTreeDropTargetListener(this);
     }
 
-    protected Optional<JTable> getSelectedPlaylistTable() {
+    protected Optional<PlaylistTable> getSelectedPlaylistTable() {
         int selectedIndex = getSelectedIndex();
         if(selectedIndex == -1) {
             return Optional.absent();
@@ -124,8 +126,7 @@ public class PlaylistsPanel extends JTabbedPane {
         return newName;
     }
 
-
-    private static class MusicTreeDropTargetListener extends DropTargetAdapter {
+    private class MusicTreeDropTargetListener extends DropTargetAdapter {
 
         public MusicTreeDropTargetListener(PlaylistsPanel panel) {
             new DropTarget(panel, DnDConstants.ACTION_COPY, this, true, null);
@@ -140,13 +141,20 @@ public class PlaylistsPanel extends JTabbedPane {
                 for(DataFlavor flavor : transferDataFlavors) {
                     logger.debug(flavor.getMimeType() + " " + flavor.getDefaultRepresentationClass());
                 }
-                InputStream transferData = (InputStream)tr.getTransferData(new DataFlavor(InputStream.class, "DefaultMutableTreeNode"));
-                logger.debug(transferData);
-
-                // transferDate = the name of the dropped object as a string;
+                Optional<PlaylistTable> selectedPlaylistTable = getSelectedPlaylistTable();
+                if(!selectedPlaylistTable.isPresent()) {
+                    return;
+                }
+                PlaylistTable playlistTable = selectedPlaylistTable.get();
+                DefaultMutableTreeNode[] transferData = (DefaultMutableTreeNode[])tr.getTransferData(MusicLibraryTree.NODES_FLAVOR);
+                for(DefaultMutableTreeNode node : transferData) {
+                    SongLibraryNode userObject = (SongLibraryNode) node.getUserObject();
+                    logger.debug("Droped " + userObject + " to Active Playlist");
+                    playlistTable.addFiles(userObject.getMP3Files());
+                }
 
             } catch (Exception e) {
-                logger.warn(e);
+                logger.warn(ExceptionHelper.getStackTrace(e));
             }
         }
     }

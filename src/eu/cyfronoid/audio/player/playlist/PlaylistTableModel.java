@@ -81,6 +81,11 @@ public class PlaylistTableModel extends CommonTableModel {
         }
     }
 
+    public void addFiles(Collection<File> files) {
+        addAllElements(tranformToModel(files));
+    }
+
+
     public static List<TableElement> tranformToModel(Collection<File> files) {
         return Lists.newArrayList(FluentIterable.from(files).transform(new FileToSongTransform<TableElement>()).toList());
     }

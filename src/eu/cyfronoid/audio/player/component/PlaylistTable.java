@@ -46,6 +46,10 @@ public class PlaylistTable extends JTable {
         playlist.setFiles(files);
     }
 
+    public void addFiles(Collection<File> files) throws IOException {
+        playlist.addFiles(files);
+    }
+
     @Subscribe
     public void receive(SongFinishedEvent event) {
         Optional<Integer> modelElementIndex = getModelElementIndex();
@@ -130,5 +134,4 @@ public class PlaylistTable extends JTable {
         int modelElementIndex = convertRowIndexToModel(selectedRow);
         return Optional.of(modelElementIndex);
     }
-
 }
