@@ -56,10 +56,14 @@ public class PlaylistsPanel extends JTabbedPane {
     private long unknownIndex = 0;
     private PlaylistTable activeTable;
 
-    public PlaylistsPanel() throws IOException {
+    public PlaylistsPanel() {
         super(JTabbedPane.TOP);
         setAutoscrolls(true);
-        createTreeSelectionListenerTab();
+        try {
+            createTreeSelectionListenerTab();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
         Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(0));
         eventBus.register(playlistTable.get());
         activeTable = playlistTable.get();
@@ -363,7 +367,7 @@ public class PlaylistsPanel extends JTabbedPane {
 
         @Override
         public void mouseReleased(MouseEvent e) {
-            if(e.isPopupTrigger()){
+            if(e.isPopupTrigger() && getSelectedIndex() != 0){
                 popup.show(e.getComponent(), e.getX(), e.getY());
             }
         }

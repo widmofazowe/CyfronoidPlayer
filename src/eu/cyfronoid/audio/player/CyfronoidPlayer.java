@@ -85,7 +85,7 @@ public class CyfronoidPlayer extends JFrame {
      * Create the application.
      * @throws IOException
      */
-    public CyfronoidPlayer() throws IOException {
+    public CyfronoidPlayer() {
         initialize();
         scheduler = PlayerConfigurator.injector.getInstance(Scheduler.class);
         scheduler.startTask(new ThreadsDump());
@@ -95,7 +95,7 @@ public class CyfronoidPlayer extends JFrame {
      * Initialize the contents of the frame.
      * @throws IOException
      */
-    private void initialize() throws IOException {
+    private void initialize() {
         //setBounds(100, 100, 750, 400);
         setScreenProperties();
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
