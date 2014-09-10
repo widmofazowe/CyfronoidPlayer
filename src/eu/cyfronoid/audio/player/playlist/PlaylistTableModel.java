@@ -26,6 +26,7 @@ import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.audio.player.song.SongProperties.SongProperty;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.framework.format.Format;
+import eu.cyfronoid.framework.util.ExceptionHelper;
 import eu.cyfronoid.framework.util.FileUtil;
 import eu.cyfronoid.gui.tableModel.CommonTableModel;
 import eu.cyfronoid.gui.tableModel.TableElement;
@@ -78,10 +79,14 @@ public class PlaylistTableModel extends CommonTableModel {
         setElements(tranformToModel(files));
     }
 
-    private void clearResources() throws IOException {
+    public void clearResources() {
         for(TableElement element : getAllElements()) {
             if(!musicPlayer.isPlaying(element)) {
-                ((Song) element).close();
+                try {
+                    ((Song) element).close();
+                } catch (IOException e) {
+                    logger.warn(ExceptionHelper.getStackTrace(e));
+                }
             }
         }
     }

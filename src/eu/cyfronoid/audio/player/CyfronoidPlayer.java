@@ -42,7 +42,6 @@ import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
 import eu.cyfronoid.audio.player.resources.OpeningException;
-import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
@@ -226,15 +225,9 @@ public class CyfronoidPlayer extends JFrame {
         public void windowClosing(WindowEvent evt) {
             Collection<Playlist> openedPlaylists = playlistsPanel.getOpenedSavedPlaylists();
             ActualViewSettings viewSettings = getViewSettings();
-            if(!playlistsPanel.areAllSaved()) {
-                logger.debug("There are unsaved playlists.");
-                int result = JOptionPane.showConfirmDialog(CyfronoidPlayer.this, Resources.PLAYER.get(PropertyKey.EXIT_WITH_UNSAVED), "Save Playlists", JOptionPane.YES_NO_CANCEL_OPTION);
-                if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
-                    return;
-                }
-                if(result == JOptionPane.OK_OPTION) {
-                    playlistsPanel.triggerSaveOnAllUnsaved();
-                }
+            boolean isCanceled = playlistsPanel.saveIfModified();
+            if(isCanceled) {
+                return;
             }
             List<String> files = FluentIterable.from(openedPlaylists).transform(PlaylistsPath.INSTANCE).toList();
             viewSettings.setOpenedPlaylists(files);

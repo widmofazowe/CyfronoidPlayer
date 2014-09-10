@@ -54,6 +54,8 @@ public enum Resources {
         public static final String REMOVE = "remove";
         public static final String CLOSE = "close";
         public static final String CLOSE_ALL = "close_all";
+        public static final String RENAME = "rename";
+        public static final String NEW_NAME = "new_name";
     }
 
     public static Collection<ThirdPartyDependency> THIRD_PARTY_DEPENDENCIES = Collections.emptyList();

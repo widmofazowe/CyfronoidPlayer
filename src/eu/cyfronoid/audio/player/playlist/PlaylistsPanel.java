@@ -6,6 +6,8 @@ import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -15,6 +17,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -34,6 +37,7 @@ import com.google.common.eventbus.Subscribe;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.event.Events;
 import eu.cyfronoid.audio.player.event.Events.UpdateTabsLabelsEvent;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.resources.OpeningException;
@@ -126,7 +130,6 @@ public class PlaylistsPanel extends JTabbedPane {
         if(playlist.isPresent()) {
             playlistTable = PlaylistTable.create(playlist.get());
             playlistTable.setFiles(playlist.get().getOrderedSongs().values());
-            playlistTable.forceNoUnsavedModifications();
             name = establishName(playlist.get().getName());
         } else {
             playlistTable = PlaylistTable.createSelectionListener();
@@ -138,6 +141,7 @@ public class PlaylistsPanel extends JTabbedPane {
         scrollPane.setToolTipText("");
 
         playlistTable.setTableName(name);
+        playlistTable.forceNoUnsavedModifications();
         addTab(name, null, scrollPane, null);
         if(name.startsWith(NEW_TAB_PREFIX)) {
             unknownTabNames.add(name);
@@ -195,12 +199,6 @@ public class PlaylistsPanel extends JTabbedPane {
 
     protected Optional<PlaylistTable> getSelectedPlaylistTable() {
         return convertComponentToPlaylistTable(getSelectedComponent());
-//        int selectedIndex = getSelectedIndex();
-//        if(selectedIndex == -1) {
-//            return Optional.absent();
-//        }
-//        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
-//        return Optional.of(tablePerTab.get(selectedIndex));
     }
 
     @Subscribe
@@ -273,14 +271,94 @@ public class PlaylistsPanel extends JTabbedPane {
         PlaylistPanelPopupListener() {
             popup = new JPopupMenu();
 
+            JMenuItem renameMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.RENAME));
+            renameMenuItem.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    Optional<PlaylistTable> selectedPlaylistTable = PlaylistsPanel.this.getSelectedPlaylistTable();
+                    if(!selectedPlaylistTable.isPresent()) {
+                        return;
+                    }
+                    PlaylistTable playlistTable = selectedPlaylistTable.get();
+                    String newName = (String) JOptionPane.showInputDialog(null, Resources.PLAYER.get(PropertyKey.NEW_NAME), Resources.PLAYER.get(PropertyKey.NEW_NAME), JOptionPane.QUESTION_MESSAGE, null, null, playlistTable.getTableName());
+
+                    if(newName != null && !newName.trim().equals("")) {
+                        playlistTable.setTableName(newName);
+                        updateTabLabel(PlaylistsPanel.this.getSelectedIndex());
+                    }
+                }
+
+            });
+            popup.add(renameMenuItem);
+
+            JMenuItem saveMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.SAVE));
+            saveMenuItem.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    eventBus.post(Events.playlistSave);
+                }
+
+            });
+            popup.add(saveMenuItem);
+
             JMenuItem closeMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.CLOSE));
+            closeMenuItem.addActionListener(new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int index = PlaylistsPanel.this.getSelectedIndex();
+                    if(index > 0) {
+                        Optional<PlaylistTable> selectedPlaylistTable = PlaylistsPanel.this.getSelectedPlaylistTable();
+                        if(selectedPlaylistTable.isPresent()) {
+                            final PlaylistTable playlistTable = selectedPlaylistTable.get();
+                            boolean isCanceled = false;
+                            if(playlistTable.hasUnsavedModifications()) {
+                                isCanceled = savePlaylistDialog(new Action() {
+
+                                    @Override
+                                    public void execute() {
+                                        playlistTable.save();
+                                    }
+
+                                });
+                            }
+                            if(isCanceled) {
+                                return;
+                            }
+                            playlistTable.clearResources();
+                        }
+                        PlaylistsPanel.this.setSelectedIndex(index-1);
+                        PlaylistsPanel.this.removeTabAt(index);
+                    }
+                }
+
+            });
             popup.add(closeMenuItem);
 
             JMenuItem closeAllMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.CLOSE_ALL));
-            popup.add(closeAllMenuItem);
+            closeAllMenuItem.addActionListener(new ActionListener() {
 
-            JMenuItem removeMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.REMOVE));
-            popup.add(removeMenuItem);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    saveIfModified();
+                    int count = getTabCount();
+                    boolean isCanceled = saveIfModified();
+                    if(isCanceled) {
+                        return;
+                    }
+                    for (int i = count-1; i > 0; i--) {
+                        Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(i));
+                        if(playlistTable.isPresent()) {
+                            playlistTable.get().clearResources();
+                        }
+                        PlaylistsPanel.this.setSelectedIndex(i-1);
+                        PlaylistsPanel.this.removeTabAt(i);
+                    }
+                }
+            });
+            popup.add(closeAllMenuItem);
         }
 
         @Override
@@ -290,6 +368,42 @@ public class PlaylistsPanel extends JTabbedPane {
             }
         }
 
+    }
+
+    public boolean saveIfModified() {
+        boolean isCanceled = false;
+        if(!areAllSaved()) {
+            logger.debug("There are unsaved playlists.");
+            isCanceled = savePlaylistDialog(new Action() {
+
+                @Override
+                public void execute() {
+                    triggerSaveOnAllUnsaved();
+                }
+
+            });
+        }
+        return isCanceled;
+    }
+
+    /**
+     *
+     * @param action
+     * @return boolean true if cancel or exit option is clicked and execution should stop
+     */
+    private boolean savePlaylistDialog(Action action) {
+        int result = JOptionPane.showConfirmDialog(null, Resources.PLAYER.get(PropertyKey.EXIT_WITH_UNSAVED), "Save Playlists", JOptionPane.YES_NO_CANCEL_OPTION);
+        if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
+            return true;
+        }
+        if(result == JOptionPane.OK_OPTION) {
+            action.execute();
+        }
+        return false;
+    }
+
+    private static interface Action {
+        void execute();
     }
 
 }

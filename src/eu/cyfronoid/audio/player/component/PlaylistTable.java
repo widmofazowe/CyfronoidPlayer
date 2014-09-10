@@ -86,13 +86,17 @@ public class PlaylistTable extends JTable {
         playlistTableModel.addFiles(files);
     }
 
+    public void clearResources() {
+        playlistTableModel.clearResources();
+    }
+
     @Subscribe
     public void saveEvent(PlaylistSaveEvent event) {
         save();
     }
 
     public void save() {
-        if(isTreeSelectionListener) {
+        if(isTreeSelectionListener || !hasUnsavedModifications) {
             return;
         }
         boolean isSaved = savePlaylist();
@@ -242,6 +246,9 @@ public class PlaylistTable extends JTable {
     }
 
     public void setTableName(String tableName) {
+        if(this.tableName != tableName) {
+            hasUnsavedModifications = true;
+        }
         this.tableName = tableName;
     }
 
@@ -256,6 +263,10 @@ public class PlaylistTable extends JTable {
 
     public Playlist getPlaylist() {
         return playlist;
+    }
+
+    public String getTableName() {
+        return tableName;
     }
 
 }
