@@ -44,7 +44,7 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      * parameters.
      */
     public DigitalSignalProcessingAudioDataConsumer() {
-        this( DEFAULT_SAMPLE_SIZE, DEFAULT_FPS );
+        this(DEFAULT_SAMPLE_SIZE, DEFAULT_FPS);
     }
 
     /**
@@ -52,7 +52,7 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      * @param pFramePerSecond The desired refresh rate per second of registered DSP's.
      */
     public DigitalSignalProcessingAudioDataConsumer( int pSampleSize, int pFramesPerSecond ) {
-        this( pSampleSize, pFramesPerSecond, SAMPLE_TYPE_SIXTEEN_BIT, CHANNEL_MODE_STEREO );
+        this(pSampleSize, pFramesPerSecond, SAMPLE_TYPE_SIXTEEN_BIT, CHANNEL_MODE_STEREO);
     }
 
     /**
@@ -61,13 +61,13 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      * @param pSampleType The sample type SAMPLE_TYPE_EIGHT_BIT or SAMPLE_TYPE_SIXTEEN_BIT.
      * @param pFramePerSecond The channel mode CHANNEL_MODE_MONO or CHANNEL_MODE_STEREO.
      */
-    public DigitalSignalProcessingAudioDataConsumer( int pSampleSize, int pFramesPerSecond, int pSampleType, int pChannelMode ) {
+    public DigitalSignalProcessingAudioDataConsumer(int pSampleSize, int pFramesPerSecond, int pSampleType, int pChannelMode) {
         sampleSize     = pSampleSize;
-        desiredFpsAsNS = 1000000000L / (long)pFramesPerSecond;
+        desiredFpsAsNS = 1000000000L/(long)pFramesPerSecond;
         fpsAsNS        = desiredFpsAsNS;
 
-        setSampleType( pSampleType );
-        setChannelMode( pChannelMode );
+        setSampleType(pSampleType);
+        setChannelMode(pChannelMode);
 
     }
 
@@ -77,8 +77,8 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      *
      * @param A class implementing the KJDigitalSignalProcessor interface.
      */
-    public void add(DigitalSignalProcessor pSignalProcessor ) {
-        dsps.add( pSignalProcessor );
+    public void add(DigitalSignalProcessor pSignalProcessor) {
+        dsps.add(pSignalProcessor);
     }
 
     /**
@@ -86,15 +86,15 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      *
      * @param A class implementing the KJDigitalSignalProcessor interface.
      */
-    public void remove(DigitalSignalProcessor pSignalProcessor ) {
+    public void remove(DigitalSignalProcessor pSignalProcessor) {
         dsps.remove( pSignalProcessor );
     }
 
-    public void setChannelMode( int pChannelMode ) {
+    public void setChannelMode(int pChannelMode) {
         channelMode = pChannelMode;
     }
 
-    public void setSampleType( int pSampleType ) {
+    public void setSampleType(int pSampleType) {
         sampleType = pSampleType;
     }
 
@@ -103,14 +103,14 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      *
      * @param pSdl A SourceDataLine.
      */
-    public synchronized void start( SourceDataLine pSdl ) {
+    public synchronized void start(SourceDataLine pSdl) {
 
         // -- Stop processing previous source data line.
-        if ( signalProcessor != null ) {
+        if(signalProcessor != null) {
             stop();
         }
 
-        if ( signalProcessor == null ) {
+        if(signalProcessor == null) {
 
 //			System.out.println( "ADBS: " + pSdl.getBufferSize() );
 
@@ -118,17 +118,17 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
 
             // -- Allocate double the memory than the SDL to prevent
             //    buffer overlapping.
-            audioDataBuffer = new byte[ pSdl.getBufferSize() << 1 ];
+            audioDataBuffer = new byte[pSdl.getBufferSize() << 1];
 
-            left  = new float[ sampleSize ];
-            right = new float[ sampleSize ];
+            left  = new float[sampleSize];
+            right = new float[sampleSize];
 
             position = 0;
             offset = 0;
 
             signalProcessor = new SignalProcessor();
 
-            new Thread( signalProcessor ).start();
+            new Thread(signalProcessor).start();
 
         }
 
@@ -138,8 +138,7 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
      * Stop monitoring the currect SourceDataLine.
      */
     public synchronized void stop() {
-
-        if ( signalProcessor != null ) {
+        if(signalProcessor != null) {
 
             signalProcessor.stop();
             signalProcessor = null;
@@ -151,56 +150,42 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
 
     }
 
-    private void storeAudioData( byte[] pAudioData, int pOffset, int pLength ) {
+    private void storeAudioData(byte[] pAudioData, int pOffset, int pLength) {
+        synchronized(readWriteLock) {
 
-        synchronized( readWriteLock ) {
-
-            if ( audioDataBuffer == null ) {
+            if (audioDataBuffer == null) {
                 return;
             }
 
             int wOverrun = 0;
 
-            if ( position + pLength > audioDataBuffer.length - 1 ) {
+            if(position + pLength > audioDataBuffer.length - 1) {
 
-                wOverrun = ( position + pLength ) - audioDataBuffer.length;
+                wOverrun = (position + pLength) - audioDataBuffer.length;
                 pLength = audioDataBuffer.length - position;
 
             }
 
-            System.arraycopy( pAudioData, pOffset, audioDataBuffer, position, pLength );
+            System.arraycopy(pAudioData, pOffset, audioDataBuffer, position, pLength);
 
-            if ( wOverrun > 0 ) {
+            if(wOverrun > 0) {
 
-                System.arraycopy( pAudioData, pOffset + pLength, audioDataBuffer, 0, wOverrun );
+                System.arraycopy(pAudioData, pOffset + pLength, audioDataBuffer, 0, wOverrun);
                 position = wOverrun;
 
             } else {
                 position += pLength;
             }
-
-//			KJJukeBox.getDSPDialog().setDSPBufferInfo(
-//				position,
-//				pOffset,
-//				pLength,
-//				audioDataBuffer.length );
-
         }
 
     }
 
-    /* (non-Javadoc)
-     * @see kj.audio.KJAudioDataConsumer#writeAudioData(byte[])
-     */
-    public void writeAudioData( byte[] pAudioData ) {
-        storeAudioData( pAudioData, 0, pAudioData.length );
+    public void writeAudioData(byte[] pAudioData) {
+        storeAudioData(pAudioData, 0, pAudioData.length);
     }
 
-    /* (non-Javadoc)
-     * @see kj.audio.KJAudioDataConsumer#writeAudioData(byte[], int, int)
-     */
-    public void writeAudioData( byte[] pAudioData, int pOffset, int pLength ) {
-        storeAudioData( pAudioData, pOffset, pLength );
+    public void writeAudioData(byte[] pAudioData, int pOffset, int pLength) {
+        storeAudioData(pAudioData, pOffset, pLength);
     }
 
     private class SignalProcessor implements Runnable {
@@ -216,84 +201,74 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
         }
 
         private int calculateSamplePosition() {
-
-            synchronized( readWriteLock ) {
-
+            synchronized(readWriteLock) {
                 long wFp = sourceDataLine.getLongFramePosition();
                 long wNfp = lfp;
 
                 lfp = wFp;
 
                 int wSdp = (int)( (long)( wNfp * frameSize ) - (long)( audioDataBuffer.length * offset ) );
-
-//				KJJukeBox.getDSPDialog().setOutputPositionInfo(
-//					wFp,
-//					wFp - wNfp,
-//					wSdp );
-
                 return wSdp;
-
             }
 
         }
 
-        private void processSamples( int pPosition ) {
+        private void processSamples(int pPosition) {
 
             int c = pPosition;
 
-            if ( channelMode == CHANNEL_MODE_MONO && sampleType == SAMPLE_TYPE_EIGHT_BIT ) {
+            if(channelMode == CHANNEL_MODE_MONO && sampleType == SAMPLE_TYPE_EIGHT_BIT) {
 
-                for( int a = 0; a < sampleSize; a++, c++ ) {
+                for(int a = 0; a < sampleSize; a++, c++) {
+
+                    if(c >= audioDataBuffer.length) {
+                        offset++;
+                        c = (c - audioDataBuffer.length);
+                    }
+
+                    left[a]  = (float)((int)audioDataBuffer[c]/128.0f);
+                    right[a] = left[a];
+                }
+
+            } else if (channelMode == CHANNEL_MODE_STEREO && sampleType == SAMPLE_TYPE_EIGHT_BIT) {
+
+                for(int a = 0; a < sampleSize; a++, c += 2) {
 
                     if ( c >= audioDataBuffer.length ) {
                         offset++;
-                        c = ( c - audioDataBuffer.length );
+                        c = (c - audioDataBuffer.length);
                     }
 
-                    left[ a ]  = (float)( (int)audioDataBuffer[ c ] / 128.0f );
-                    right[ a ] = left[ a ];
+                    left[a]  = (float)((int)audioDataBuffer[c]/128.0f);
+                    right[a] = (float)((int)audioDataBuffer[c + 1]/128.0f);
 
                 }
 
-            } else if ( channelMode == CHANNEL_MODE_STEREO && sampleType == SAMPLE_TYPE_EIGHT_BIT ) {
+            } else if(channelMode == CHANNEL_MODE_MONO && sampleType == SAMPLE_TYPE_SIXTEEN_BIT) {
 
-                for( int a = 0; a < sampleSize; a++, c += 2 ) {
+                for(int a = 0; a < sampleSize; a++, c += 2) {
 
-                    if ( c >= audioDataBuffer.length ) {
+                    if (c >= audioDataBuffer.length) {
                         offset++;
-                        c = ( c - audioDataBuffer.length );
+                        c = (c - audioDataBuffer.length);
                     }
 
-                    left[ a ]  = (float)( (int)audioDataBuffer[ c ] / 128.0f );
-                    right[ a ] = (float)( (int)audioDataBuffer[ c + 1 ] / 128.0f );
+                    left[a]  = (float)(((int)audioDataBuffer[c + 1] << 8) + audioDataBuffer[c])/32767.0f;
+                    right[a] = left[a];
 
                 }
 
-            } else if ( channelMode == CHANNEL_MODE_MONO && sampleType == SAMPLE_TYPE_SIXTEEN_BIT ) {
+            } else if (channelMode == CHANNEL_MODE_STEREO && sampleType == SAMPLE_TYPE_SIXTEEN_BIT) {
 
-                for( int a = 0; a < sampleSize; a++, c += 2 ) {
+                for(int a = 0; a < sampleSize; a++, c += 4) {
 
-                    if ( c >= audioDataBuffer.length ) {
+                    if (c >= audioDataBuffer.length) {
                         offset++;
-                        c = ( c - audioDataBuffer.length );
+                        c = (c - audioDataBuffer.length);
                     }
 
-                    left[ a ]  = (float)( ( (int)audioDataBuffer[ c + 1 ] << 8 ) + audioDataBuffer[ c ] ) / 32767.0f;;
-                    right[ a ] = left[ a ];
-
-                }
-
-            } else if ( channelMode == CHANNEL_MODE_STEREO && sampleType == SAMPLE_TYPE_SIXTEEN_BIT ) {
-
-                for( int a = 0; a < sampleSize; a++, c += 4 ) {
-
-                    if ( c >= audioDataBuffer.length ) {
-                        offset++;
-                        c = ( c - audioDataBuffer.length );
-                    }
-
-                    left[ a ]  = (float)( ( (int)audioDataBuffer[ c + 1 ] << 8 ) + audioDataBuffer[ c ] ) / 32767.0f;
-                    right[ a ] = (float)( ( (int)audioDataBuffer[ c + 3 ] << 8 ) + audioDataBuffer[ c + 2 ] ) / 32767.0f;
+                    left[a]  = (float)(((int)audioDataBuffer[c + 1] << 8) + audioDataBuffer[c])/32767.0f;
+                    right[a] = (float)(((int)audioDataBuffer[c + 3] << 8) + audioDataBuffer[c + 2])/32767.0f;
 
                 }
 
@@ -303,7 +278,7 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
 
         public void run() {
 
-            while( process ) {
+            while(process) {
 
                 try {
 
@@ -311,48 +286,43 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
 
                     int wSdp = calculateSamplePosition();
 
-                    if ( wSdp > 0 ) {
-                        processSamples( wSdp );
+                    if (wSdp > 0) {
+                        processSamples(wSdp);
                     }
 
                     // -- Dispatch sample data to digtal signal processors.
-                    for( int a = 0; a < dsps.size(); a++ ) {
+                    for(int a = 0; a < dsps.size(); a++) {
 
                         // -- Calculate the frame rate ratio hint. This value can be used by
                         //    animated DSP's to fast forward animation frames to make up for
                         //    inconsistencies with the frame rate.
-                        float wFrr = (float)fpsAsNS / (float)desiredFpsAsNS;
+                        float wFrr = (float)fpsAsNS/(float)desiredFpsAsNS;
 
                         try {
-                            ( (DigitalSignalProcessor)dsps.get( a ) ).process( left, right, wFrr );
-                        } catch( Exception pEx ) {
-                            System.err.println( "-- DSP Exception: " );
+                            ((DigitalSignalProcessor)dsps.get(a)).process(left, right, wFrr);
+                        } catch(Exception pEx) {
+                            System.err.println("-- DSP Exception: ");
                             pEx.printStackTrace();
                         }
                     }
 
-//					KJJukeBox.getDSPDialog().setDSPInformation(
-//						String.valueOf( 1000.0f / ( (float)( wEtn - wStn ) / 1000000.0f ) ) );
-
-    //				System.out.println( 1000.0f / ( (float)( wEtn - wStn ) / 1000000.0f ) );
-
-                    long wDelay = fpsAsNS - ( System.nanoTime() - wStn );
+                    long wDelay = fpsAsNS - (System.nanoTime() - wStn);
 
                     // -- No DSP registered? Put the the DSP thread to sleep.
-                    if ( dsps.isEmpty() ) {
+                    if (dsps.isEmpty()) {
                         wDelay = 1000000000; // -- 1 second.
                     }
 
-                    if ( wDelay > 0 ) {
+                    if (wDelay > 0) {
 
                         try {
-                            Thread.sleep( wDelay / 1000000, (int)wDelay % 1000000 );
-                        } catch ( Exception pEx ) {
-                            // TODO Auto-generated catch block
+                            Thread.sleep(wDelay / 1000000, (int)wDelay % 1000000);
+                        } catch (Exception pEx) {
+
                         }
 
                         // -- Adjust FPS until we meet the "desired FPS".
-                        if ( fpsAsNS > desiredFpsAsNS ) {
+                        if (fpsAsNS > desiredFpsAsNS) {
                             fpsAsNS -= wDelay;
                         } else {
                             fpsAsNS = desiredFpsAsNS;
@@ -365,15 +335,15 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
 
                         // -- Keep thread from hogging CPU.
                         try {
-                            Thread.sleep( 10 );
-                        } catch ( InterruptedException pEx ) {
+                            Thread.sleep(10);
+                        } catch (InterruptedException pEx) {
                             // TODO Auto-generated catch block
                         }
 
                     }
 
-                } catch( Exception pEx ) {
-                    System.err.println( "- DSP Exception: " );
+                } catch(Exception pEx) {
+                    System.err.println("- DSP Exception: ");
                     pEx.printStackTrace();
                 }
 
@@ -384,7 +354,6 @@ public class DigitalSignalProcessingAudioDataConsumer implements AudioDataConsum
         public void stop() {
             process = false;
         }
-
     }
 
 

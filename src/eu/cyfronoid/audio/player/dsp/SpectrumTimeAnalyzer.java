@@ -530,16 +530,18 @@ public class SpectrumTimeAnalyzer extends JPanel implements DigitalSignalProcess
     }
 
     public synchronized void process(float[] pLeft, float[] pRight, float pFrameRateRatioHint) {
-        if (displayMode == DISPLAY_MODE_OFF) return;
+        if (displayMode == DISPLAY_MODE_OFF) {
+            return;
+        }
         Graphics wGrp = getDoubleBuffer().getGraphics();
         wGrp.setColor(getBackground());
         wGrp.fillRect(0, 0, getSize().width, getSize().height);
         switch (displayMode) {
             case DISPLAY_MODE_SCOPE:
-                drawScope(wGrp, stereoMerge(pLeft, pRight));
+                drawScope(wGrp, DSPUtils.stereoMerge(pLeft, pRight));
                 break;
             case DISPLAY_MODE_SPECTRUM_ANALYSER:
-                drawSpectrumAnalyser(wGrp, stereoMerge(pLeft, pRight), pFrameRateRatioHint);
+                drawSpectrumAnalyser(wGrp, DSPUtils.stereoMerge(pLeft, pRight), pFrameRateRatioHint);
                 break;
             case DISPLAY_MODE_OFF:
                 drawVUMeter(wGrp, pLeft, pRight, pFrameRateRatioHint);
@@ -560,13 +562,6 @@ public class SpectrumTimeAnalyzer extends JPanel implements DigitalSignalProcess
         if (getGraphics() != null) {
             getGraphics().drawImage(getDoubleBuffer(), 0, 0, null);
         }
-        //      repaint();
-        //      try {
-        //          EventQueue.invokeLater( new AWTPaintSynchronizer() );
-        //      } catch ( Exception pEx ) {
-        //          // -- Ignore exception.
-        //          pEx.printStackTrace();
-        //      }
     }
 
     /**
@@ -645,16 +640,4 @@ public class SpectrumTimeAnalyzer extends JPanel implements DigitalSignalProcess
         computeSAMultiplier();
     }
 
-    private float[] stereoMerge(float[] pLeft, float[] pRight) {
-        for (int a = 0; a < pLeft.length; a++) {
-            pLeft[a] = (pLeft[a] + pRight[a]) / 2.0f;
-        }
-        return pLeft;
-    }
-
-    /*public void update(Graphics pGraphics)
-    {
-        // -- Prevent AWT from clearing background.
-        paint(pGraphics);
-    }*/
 }
