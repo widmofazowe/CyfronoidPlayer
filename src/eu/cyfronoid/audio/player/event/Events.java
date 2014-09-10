@@ -7,9 +7,16 @@ public class Events {
     public static final ToggleAnalyzerPanel toggleAnalyzerPanel = new ToggleAnalyzerPanel();
     public static final PlaylistSaveEvent playlistSave = new PlaylistSaveEvent();
     public static final UpdateTabsLabelsEvent updateTabsLabels = new UpdateTabsLabelsEvent();
+    public static final ClosePlayerEvent closePlayer = new ClosePlayerEvent();
 
     private Events() {
 
+    }
+
+    public static class ClosePlayerEvent {
+        private ClosePlayerEvent() {
+
+        }
     }
 
     public static class UpdateTabsLabelsEvent {

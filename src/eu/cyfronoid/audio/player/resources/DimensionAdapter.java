@@ -16,7 +16,7 @@ public class DimensionAdapter extends XmlAdapter<String, Dimension> {
     @Override
     public Dimension unmarshal(String dimensionString) throws Exception {
         String[] dimension = dimensionString.split(SEPARATOR);
-        return new Dimension(Integer.parseInt(dimension[0]), Integer.parseInt(dimension[1]));
+        return new Dimension(Integer.parseInt(dimension[0].replace(".0", "")), Integer.parseInt(dimension[1].replace(".0", "")));
     }
 
 }

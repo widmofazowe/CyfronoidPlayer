@@ -30,13 +30,7 @@ public class PlayerMenu extends JMenuBar {
         add(viewMenu);
 
         JMenuItem toggleSpectrumAnalyzerMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.TOGGLE_SPECTRUM));
-        toggleSpectrumAnalyzerMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eventBus.post(Events.toggleAnalyzerPanel);
-            }
-        });
+        toggleSpectrumAnalyzerMenuItem.addActionListener(CommonActionListener.EVENT_BUS_POST.get(eventBus, Events.toggleAnalyzerPanel));
         viewMenu.add(toggleSpectrumAnalyzerMenuItem);
     }
 
@@ -60,40 +54,19 @@ public class PlayerMenu extends JMenuBar {
         add(fileMenu);
 
         JMenuItem newMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.NEW));
-        newMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eventBus.post(Events.newPlaylist);
-            }
-
-        });
+        newMenuItem.addActionListener(CommonActionListener.EVENT_BUS_POST.get(eventBus, Events.newPlaylist));
         fileMenu.add(newMenuItem);
 
         JMenuItem openMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.OPEN));
-        openMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eventBus.post(Events.playlistOpenDialog);
-            }
-
-        });
+        openMenuItem.addActionListener(CommonActionListener.EVENT_BUS_POST.get(eventBus, Events.playlistOpenDialog));
         fileMenu.add(openMenuItem);
 
         JMenuItem saveMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.SAVE));
-        saveMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                eventBus.post(Events.playlistSave);
-            }
-
-        });
+        saveMenuItem.addActionListener(CommonActionListener.EVENT_BUS_POST.get(eventBus, Events.playlistSave));
         fileMenu.add(saveMenuItem);
 
         JMenuItem exitMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.EXIT));
-        exitMenuItem.addActionListener(CommonActionListener.SEND_CLOSE_EVENT.get(this));
+        exitMenuItem.addActionListener(CommonActionListener.EVENT_BUS_POST.get(eventBus, Events.closePlayer));
         fileMenu.add(exitMenuItem);
     }
 }

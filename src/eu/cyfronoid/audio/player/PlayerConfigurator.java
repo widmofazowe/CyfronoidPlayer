@@ -38,9 +38,9 @@ public class PlayerConfigurator extends AbstractModule {
     public static final Settings SETTINGS;
     public static final Injector injector = Guice.createInjector(new PlayerConfigurator());
     public static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-    public static final Locale LOCALE = new Locale("pl", "PL");
+    public static final Locale LOCALE = Locale.ENGLISH;
     public static final ImageIcon APPLICATION_ICON = new ImageIcon(TransparentImage.getTransparentIcon(Icons.APP_ICON.getImage(), Color.white));
-    public static final String VERSION = "0.1.0 dev";
+    public static final String VERSION = "0.2.0 dev";
     public static final SimpleAboutDialog ABOUT_DIALOG = new SimpleAboutDialog(APPLICATION_ICON,
             Resources.PLAYER.get(PropertyKey.APP_TEXT, APP_NAME, VERSION),
             Resources.PLAYER.get(PropertyKey.ABOUT_TEXT),

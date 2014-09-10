@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -34,6 +35,7 @@ import eu.cyfronoid.audio.player.component.Loudness;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlayingProgress;
 import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
+import eu.cyfronoid.audio.player.event.Events.ClosePlayerEvent;
 import eu.cyfronoid.audio.player.event.Events.NewPlaylistEvent;
 import eu.cyfronoid.audio.player.event.Events.PlaylistOpenDialogShowEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
@@ -48,6 +50,7 @@ import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.scheduler.Scheduler;
 import eu.cyfronoid.framework.scheduler.ThreadsDump;
 import eu.cyfronoid.framework.util.ExceptionHelper;
+import eu.cyfronoid.gui.action.CommonActions;
 import eu.cyfronoid.gui.file.ExtensionFilter;
 import eu.cyfronoid.gui.tree.TreeState;
 
@@ -83,15 +86,6 @@ public class CyfronoidPlayer extends JFrame {
      * @throws IOException
      */
     public CyfronoidPlayer() throws IOException {
-        Dimension windowDimension = PlayerConfigurator.SETTINGS.getWindowDimension();
-        Dimension defaultDimension = DefaultSettings.INSTANCE.getDimension();
-        if(windowDimension == null) {
-            windowDimension = defaultDimension;
-            PlayerConfigurator.SETTINGS.setWindowDimension(defaultDimension);
-        }
-        setPreferredSize(windowDimension);
-        setSize(windowDimension);
-        setMinimumSize(defaultDimension);
         initialize();
         scheduler = PlayerConfigurator.injector.getInstance(Scheduler.class);
         scheduler.startTask(new ThreadsDump());
@@ -102,7 +96,8 @@ public class CyfronoidPlayer extends JFrame {
      * @throws IOException
      */
     private void initialize() throws IOException {
-        setBounds(100, 100, 750, 400);
+        //setBounds(100, 100, 750, 400);
+        setScreenProperties();
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setIconImage(PlayerConfigurator.APPLICATION_ICON.getImage());
         setTitle(PlayerConfigurator.APP_NAME);
@@ -162,6 +157,30 @@ public class CyfronoidPlayer extends JFrame {
         analyzerPanel = AnalyzerDialog.open();
         eventBus.register(analyzerPanel);
         musicPlayer.setAnalyzer(analyzerPanel);
+    }
+
+    private void setScreenProperties() {
+        setScreenSize();
+        Point windowLocation = PlayerConfigurator.SETTINGS.getWindowLocation();
+
+        if(windowLocation != null) {
+            logger.debug("Window location: " + windowLocation);
+            setLocation(windowLocation);
+        }
+    }
+
+    private void setScreenSize() {
+        Dimension windowDimension = PlayerConfigurator.SETTINGS.getWindowDimension();
+        Dimension defaultDimension = DefaultSettings.INSTANCE.getDimension();
+        if(windowDimension == null) {
+            logger.debug("Getting default dimensions");
+            windowDimension = defaultDimension;
+            PlayerConfigurator.SETTINGS.setWindowDimension(defaultDimension);
+        }
+        logger.debug("Window dimension: " + windowDimension);
+        setPreferredSize(windowDimension);
+        setSize(windowDimension);
+        setMinimumSize(defaultDimension);
     }
 
     @Subscribe
@@ -247,7 +266,9 @@ public class CyfronoidPlayer extends JFrame {
             TreeState state = new TreeState(tree);
             viewSettings.setExpansionState(state.getExpansionState());
 
-            PlayerConfigurator.SETTINGS.setWindowDimension(getSize());
+            PlayerConfigurator.SETTINGS.setWindowDimension(CyfronoidPlayer.this.getSize());
+            PlayerConfigurator.SETTINGS.setWindowLocation(CyfronoidPlayer.this.getLocationOnScreen());
+
             PlayerConfigurator.saveSettings();
 
             scheduler.stop();
@@ -277,6 +298,11 @@ public class CyfronoidPlayer extends JFrame {
             }
             return file.getAbsolutePath();
         }
+    }
+
+    @Subscribe
+    public void close(ClosePlayerEvent event) {
+        CommonActions.SEND_CLOSE_EVENT.execute(this);
     }
 
 

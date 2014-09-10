@@ -1,6 +1,7 @@
 package eu.cyfronoid.audio.player.resources;
 
 import java.awt.Dimension;
+import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import com.google.common.base.Optional;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 
 @XmlRootElement
-@XmlType(propOrder = {"windowDimension", "musicLibraryDirectories", "gain", "actualViewSettings"})
+@XmlType(propOrder = {"windowDimension", "windowLocation", "musicLibraryDirectories", "gain", "actualViewSettings"})
 public class Settings {
     private static final Logger logger = Logger.getLogger(Settings.class);
 
@@ -30,6 +31,7 @@ public class Settings {
     private double gain;
     private ActualViewSettings actualViewSettings;
     private Dimension windowDimension;
+    private Point windowLocation;
 
     public List<String> getMusicLibraryDirectories() {
         return musicLibraryDirectories;
@@ -90,14 +92,24 @@ public class Settings {
         this.actualViewSettings = actualSelections;
     }
 
+    @XmlElement
+    @XmlJavaTypeAdapter(DimensionAdapter.class)
+    public void setWindowDimension(Dimension windowDimension) {
+        this.windowDimension = windowDimension;
+    }
+
     public Dimension getWindowDimension() {
         return windowDimension;
     }
 
     @XmlElement
-    @XmlJavaTypeAdapter(DimensionAdapter.class)
-    public void setWindowDimension(Dimension windowDimension) {
-        this.windowDimension = windowDimension;
+    @XmlJavaTypeAdapter(PointAdapter.class)
+    public void setWindowLocation(Point windowLocation) {
+        this.windowLocation = windowLocation;
+    }
+
+    public Point getWindowLocation() {
+        return windowLocation;
     }
 
 }
