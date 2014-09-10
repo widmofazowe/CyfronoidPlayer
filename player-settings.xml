@@ -6,11 +6,12 @@
     </musicLibraryDirectories>
     <gain>0.78</gain>
     <actualViewSettings>
-        <expansionState>[],[, MusicLibrary],[, MusicLibrary, Black Label],[, MusicLibrary, Test],</expansionState>
+        <expansionState>[],[, MusicLibrary],[, MusicLibrary, Black Label],[, MusicLibrary, Disturbed],[, MusicLibrary, Test],</expansionState>
         <selectedSong>C:\Users\Comarch\OneDrive\Java-web - luna\workspace\CyfronoidPlayer\MusicLibrary\Test\Disturbed - Deceiver.mp3</selectedSong>
         <openedPlaylists>
             <openedPlaylist>C:\Users\Comarch\OneDrive\Java-web - luna\workspace\CyfronoidPlayer\test.xml</openedPlaylist>
+            <openedPlaylist>C:\Users\Comarch\Desktop\asdf.xml</openedPlaylist>
         </openedPlaylists>
-        <selectedTab>1</selectedTab>
+        <selectedTab>2</selectedTab>
     </actualViewSettings>
 </settings>

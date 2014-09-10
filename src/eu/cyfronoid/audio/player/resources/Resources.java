@@ -49,6 +49,11 @@ public enum Resources {
         public static final String VIEW_MENU = "view";
         public static final String TOGGLE_SPECTRUM = "toggle_spectrum";
         public static final String SAVE = "save";
+        public static final String EXIT_WITH_UNSAVED = "exit_with_unsaved";
+        public static final String SAVING_DIALOG_TITLE = "saving_dialog_title";
+        public static final String REMOVE = "remove";
+        public static final String CLOSE = "close";
+        public static final String CLOSE_ALL = "close_all";
     }
 
     public static Collection<ThirdPartyDependency> THIRD_PARTY_DEPENDENCIES = Collections.emptyList();

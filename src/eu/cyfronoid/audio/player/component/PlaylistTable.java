@@ -37,6 +37,7 @@ import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.util.ExceptionHelper;
+import eu.cyfronoid.framework.util.FileExtension;
 import eu.cyfronoid.gui.file.ExtensionFilter;
 import eu.cyfronoid.gui.file.FileDialogBuilder;
 import eu.cyfronoid.gui.tableModel.TableElement;
@@ -91,20 +92,24 @@ public class PlaylistTable extends JTable {
     }
 
     public void save() {
+        if(isTreeSelectionListener) {
+            return;
+        }
         boolean isSaved = savePlaylist();
         setHasUnsavedModifications(!isSaved);
         eventBus.post(Events.updateTabsLabels);
     }
 
-    public boolean savePlaylist() {
+    private boolean savePlaylist() {
         File saveFile;
         if(playlist.getFile() != null) {
             saveFile = playlist.getFile();
         } else {
-            JFileChooser fileChooser = FileDialogBuilder.create().withFilter(ExtensionFilter.xml).build();
+            JFileChooser fileChooser = FileDialogBuilder.create(Resources.PLAYER.get(PropertyKey.SAVING_DIALOG_TITLE, tableName)).withFilter(ExtensionFilter.xml).build();
             int result = fileChooser.showSaveDialog(null);
             if(result == JFileChooser.APPROVE_OPTION) {
-                saveFile = fileChooser.getSelectedFile();
+                saveFile = FileExtension.xml.formatFileName(fileChooser.getSelectedFile());
+                playlist.setFile(saveFile);
             } else {
                 return false;
             }
@@ -226,6 +231,9 @@ public class PlaylistTable extends JTable {
     }
 
     public boolean hasUnsavedModifications() {
+        if(isTreeSelectionListener) {
+            return false;
+        }
         return hasUnsavedModifications;
     }
 
@@ -240,6 +248,14 @@ public class PlaylistTable extends JTable {
     @Override
     public String toString() {
         return tableName + ((hasUnsavedModifications) ? " *" : "");
+    }
+
+    public void forceNoUnsavedModifications() {
+        hasUnsavedModifications = false;
+    }
+
+    public Playlist getPlaylist() {
+        return playlist;
     }
 
 }

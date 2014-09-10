@@ -1,20 +1,24 @@
 package eu.cyfronoid.audio.player.playlist;
 
+import java.awt.Component;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import javax.swing.JOptionPane;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JViewport;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -22,10 +26,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
@@ -35,6 +36,9 @@ import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
 import eu.cyfronoid.audio.player.event.Events.UpdateTabsLabelsEvent;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
+import eu.cyfronoid.audio.player.resources.OpeningException;
+import eu.cyfronoid.audio.player.resources.Resources;
+import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.framework.util.ExceptionHelper;
 
@@ -43,20 +47,18 @@ public class PlaylistsPanel extends JTabbedPane {
     public static final String TREE_SELECTION_LISTENER_NAME = "Selection Listener";
     private static final Logger logger = Logger.getLogger(PlaylistsPanel.class);
     private static final String NEW_TAB_PREFIX = "New Tab ";
-    private Map<Integer, PlaylistTable> tablePerTab = Maps.newHashMap();
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
-    private BiMap<Integer, String> openedPlaylistTables = HashBiMap.create();
     private Set<String> unknownTabNames = Sets.newHashSet();
     private long unknownIndex = 0;
     private PlaylistTable activeTable;
-    private Map<Integer, Playlist> openedPlaylists = Maps.newHashMap();
 
     public PlaylistsPanel() throws IOException {
         super(JTabbedPane.TOP);
         setAutoscrolls(true);
         createTreeSelectionListenerTab();
-        eventBus.register(tablePerTab.get(0));  // above statement guaranteed that there is at leased one item
-        activeTable = tablePerTab.get(0);
+        Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(0));
+        eventBus.register(playlistTable.get());
+        activeTable = playlistTable.get();
 
         addChangeListener(new ChangeListener() {
             public void stateChanged(ChangeEvent e) {
@@ -70,7 +72,7 @@ public class PlaylistsPanel extends JTabbedPane {
         });
 
         new MusicTreeDropTargetListener(this);
-
+        addMouseListener(new PlaylistPanelPopupListener());
         openPlaylistsFromSettings();
     }
 
@@ -92,7 +94,7 @@ public class PlaylistsPanel extends JTabbedPane {
                 if(selectedTab > i) {
                     i++;
                 }
-            } catch (IOException e) {
+            } catch (IOException | OpeningException e) {
                 logger.warn(ExceptionHelper.getStackTrace(e));
             }
         }
@@ -104,16 +106,10 @@ public class PlaylistsPanel extends JTabbedPane {
         createTab(Optional.<Playlist>absent());
     }
 
-    public void openTab(File file) throws IOException {
+    public void openTab(File file) throws IOException, OpeningException {
         Optional<Playlist> playlist = Playlist.loadPlaylist(file);
         if(!playlist.isPresent()) {
-            JOptionPane.showMessageDialog(this, "Wrong file structure " + file);
-            return;
-        }
-        String name = playlist.get().getName();
-        if(openedPlaylistTables.containsValue(name)) {
-            JOptionPane.showMessageDialog(this, "Cannot open two playlists with the same name " + name);
-            return;
+            throw new OpeningException();
         }
         playlist.get().setFile(file);
         createTab(playlist);
@@ -130,8 +126,8 @@ public class PlaylistsPanel extends JTabbedPane {
         if(playlist.isPresent()) {
             playlistTable = PlaylistTable.create(playlist.get());
             playlistTable.setFiles(playlist.get().getOrderedSongs().values());
+            playlistTable.forceNoUnsavedModifications();
             name = establishName(playlist.get().getName());
-            openedPlaylists.put(tabCount, playlist.get());
         } else {
             playlistTable = PlaylistTable.createSelectionListener();
             name = TREE_SELECTION_LISTENER_NAME;
@@ -141,10 +137,7 @@ public class PlaylistsPanel extends JTabbedPane {
         scrollPane.setBorder(null);
         scrollPane.setToolTipText("");
 
-        tablePerTab.put(tabCount, playlistTable);
-
         playlistTable.setTableName(name);
-        openedPlaylistTables.put(tabCount, name);
         addTab(name, null, scrollPane, null);
         if(name.startsWith(NEW_TAB_PREFIX)) {
             unknownTabNames.add(name);
@@ -201,12 +194,13 @@ public class PlaylistsPanel extends JTabbedPane {
     }
 
     protected Optional<PlaylistTable> getSelectedPlaylistTable() {
-        int selectedIndex = getSelectedIndex();
-        if(selectedIndex == -1) {
-            return Optional.absent();
-        }
-        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
-        return Optional.of(tablePerTab.get(selectedIndex));
+        return convertComponentToPlaylistTable(getSelectedComponent());
+//        int selectedIndex = getSelectedIndex();
+//        if(selectedIndex == -1) {
+//            return Optional.absent();
+//        }
+//        Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
+//        return Optional.of(tablePerTab.get(selectedIndex));
     }
 
     @Subscribe
@@ -222,20 +216,80 @@ public class PlaylistsPanel extends JTabbedPane {
     }
 
     private void updateTabLabel(int i) {
-        setTitleAt(i, tablePerTab.get(i).toString());
+        Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(i));
+        if(playlistTable.isPresent()) {
+            setTitleAt(i, playlistTable.get().toString());
+        }
     }
 
-    public Collection<Playlist> getOpenedPlaylists() {
-        return openedPlaylists.values();
+    public Collection<Playlist> getOpenedSavedPlaylists() {
+        Collection<Playlist> openedPlaylists = Lists.newArrayList();
+        int count = getTabCount();
+        for (int i = 0; i < count; i++) {
+            Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(i));
+            if(playlistTable.isPresent() && !playlistTable.get().hasUnsavedModifications()) {
+                Playlist playlist = playlistTable.get().getPlaylist();
+                if(playlist != null) {
+                    openedPlaylists.add(playlist);
+                }
+            }
+        }
+        return openedPlaylists;
+    }
+
+    private Optional<PlaylistTable> convertComponentToPlaylistTable(Component component) {
+        JScrollPane selectedComponent = (JScrollPane) component;
+        if(selectedComponent == null) {
+            return Optional.absent();
+        }
+        JViewport viewport = selectedComponent.getViewport();
+        return Optional.fromNullable((PlaylistTable)viewport.getView());
     }
 
     public boolean areAllSaved() {
-        for(PlaylistTable playlistTable : tablePerTab.values()) {
-            if(playlistTable.hasUnsavedModifications()) {
+        int count = getTabCount();
+        for (int i = 0; i < count; i++) {
+            Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(i));
+            if(playlistTable.isPresent() && playlistTable.get().hasUnsavedModifications()) {
                 return false;
             }
         }
         return true;
+    }
+
+    public void triggerSaveOnAllUnsaved() {
+        int count = getTabCount();
+        for (int i = 0; i < count; i++) {
+            Optional<PlaylistTable> playlistTable = convertComponentToPlaylistTable(getComponentAt(i));
+            if(playlistTable.isPresent()) {
+                playlistTable.get().save();
+            }
+        }
+    }
+
+    private class PlaylistPanelPopupListener extends MouseAdapter {
+        private JPopupMenu popup;
+
+        PlaylistPanelPopupListener() {
+            popup = new JPopupMenu();
+
+            JMenuItem closeMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.CLOSE));
+            popup.add(closeMenuItem);
+
+            JMenuItem closeAllMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.CLOSE_ALL));
+            popup.add(closeAllMenuItem);
+
+            JMenuItem removeMenuItem = new JMenuItem(Resources.PLAYER.get(PropertyKey.REMOVE));
+            popup.add(removeMenuItem);
+        }
+
+        @Override
+        public void mouseReleased(MouseEvent e) {
+            if(e.isPopupTrigger()){
+                popup.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
+
     }
 
 }

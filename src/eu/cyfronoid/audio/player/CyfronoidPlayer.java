@@ -41,6 +41,8 @@ import eu.cyfronoid.audio.player.playlist.Playlist;
 import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
+import eu.cyfronoid.audio.player.resources.OpeningException;
+import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
@@ -211,7 +213,7 @@ public class CyfronoidPlayer extends JFrame {
             logger.info("Opening: " + file.getName() + ".");
             try {
                 playlistsPanel.openTab(file);
-            } catch (IOException ex) {
+            } catch (IOException | OpeningException ex) {
                 JOptionPane.showMessageDialog(CyfronoidPlayer.this, "File " + file + " is not correct format of playlist.");
                 logger.warn("Problem while loading playlist " + file);
             }
@@ -222,10 +224,17 @@ public class CyfronoidPlayer extends JFrame {
 
         @Override
         public void windowClosing(WindowEvent evt) {
-            Collection<Playlist> openedPlaylists = playlistsPanel.getOpenedPlaylists();
+            Collection<Playlist> openedPlaylists = playlistsPanel.getOpenedSavedPlaylists();
             ActualViewSettings viewSettings = getViewSettings();
             if(!playlistsPanel.areAllSaved()) {
                 logger.debug("There are unsaved playlists.");
+                int result = JOptionPane.showConfirmDialog(CyfronoidPlayer.this, Resources.PLAYER.get(PropertyKey.EXIT_WITH_UNSAVED), "Save Playlists", JOptionPane.YES_NO_CANCEL_OPTION);
+                if(result == JOptionPane.CANCEL_OPTION || result == JOptionPane.CLOSED_OPTION) {
+                    return;
+                }
+                if(result == JOptionPane.OK_OPTION) {
+                    playlistsPanel.triggerSaveOnAllUnsaved();
+                }
             }
             List<String> files = FluentIterable.from(openedPlaylists).transform(PlaylistsPath.INSTANCE).toList();
             viewSettings.setOpenedPlaylists(files);
