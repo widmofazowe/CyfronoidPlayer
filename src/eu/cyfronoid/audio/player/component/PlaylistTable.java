@@ -7,41 +7,62 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
+import java.util.SortedMap;
 
+import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+
+import org.apache.log4j.Logger;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
+import eu.cyfronoid.audio.player.event.Events;
+import eu.cyfronoid.audio.player.event.Events.PlaylistSaveEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
+import eu.cyfronoid.audio.player.playlist.Playlist;
 import eu.cyfronoid.audio.player.playlist.PlaylistTableModel;
 import eu.cyfronoid.audio.player.resources.Resources;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
 import eu.cyfronoid.audio.player.song.Song;
+import eu.cyfronoid.framework.util.ExceptionHelper;
+import eu.cyfronoid.gui.file.ExtensionFilter;
+import eu.cyfronoid.gui.file.FileDialogBuilder;
+import eu.cyfronoid.gui.tableModel.TableElement;
 
 public class PlaylistTable extends JTable {
     private static final long serialVersionUID = -1614591239377223113L;
+    private static final Logger logger = Logger.getLogger(PlaylistTable.class);
     private PlaylistTableModel playlistTableModel;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private boolean isTreeSelectionListener;
     private boolean hasUnsavedModifications = false;
     private String tableName;
+    private final Playlist playlist;
 
     public static PlaylistTable createSelectionListener() {
-        return new PlaylistTable(true);
+        return new PlaylistTable(true, null);
     }
 
-    public static PlaylistTable create() {
-        return new PlaylistTable(false);
+    public static PlaylistTable create(Playlist playlist) {
+        Preconditions.checkNotNull(playlist);
+        return new PlaylistTable(false, playlist);
     }
 
-    private PlaylistTable(boolean isTreeSelectionListener) {
+    private PlaylistTable(boolean isTreeSelectionListener, Playlist playlist) {
         this.isTreeSelectionListener = isTreeSelectionListener;
+        this.playlist = playlist;
         prepareTableModel(isTreeSelectionListener);
     }
 
@@ -64,9 +85,55 @@ public class PlaylistTable extends JTable {
         playlistTableModel.addFiles(files);
     }
 
+    @Subscribe
+    public void saveEvent(PlaylistSaveEvent event) {
+        save();
+    }
+
     public void save() {
-        setHasUnsavedModifications(false);
-        //TODO
+        boolean isSaved = savePlaylist();
+        setHasUnsavedModifications(!isSaved);
+        eventBus.post(Events.updateTabsLabels);
+    }
+
+    public boolean savePlaylist() {
+        File saveFile;
+        if(playlist.getFile() != null) {
+            saveFile = playlist.getFile();
+        } else {
+            JFileChooser fileChooser = FileDialogBuilder.create().withFilter(ExtensionFilter.xml).build();
+            int result = fileChooser.showSaveDialog(null);
+            if(result == JFileChooser.APPROVE_OPTION) {
+                saveFile = fileChooser.getSelectedFile();
+            } else {
+                return false;
+            }
+        }
+        playlist.setName(tableName);
+        logger.debug("Saving playlist " + tableName + " to " + saveFile.getAbsoluteFile());
+        playlist.setOrderedSongs(createOrderedFileList());
+        JAXBContext jaxbContext;
+        try {
+            jaxbContext = JAXBContext.newInstance(Playlist.class);
+            Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+            jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            jaxbMarshaller.marshal(playlist, saveFile);
+            return true;
+        } catch (JAXBException e) {
+            logger.error(ExceptionHelper.getStackTrace(e));
+        }
+        return false;
+    }
+
+    private SortedMap<Integer, File> createOrderedFileList() {
+        List<TableElement> allElements = playlistTableModel.getAllElements();
+        SortedMap<Integer, File> orderedSongs = Maps.newTreeMap();
+        int i = 0;
+        for(TableElement element : allElements) {
+            orderedSongs.put(i++, ((Song) element).getFile());
+        }
+
+        return orderedSongs;
     }
 
     @Subscribe

@@ -81,6 +81,17 @@ public class PlayerMenu extends JMenuBar {
         });
         fileMenu.add(openMenuItem);
 
+        JMenuItem saveMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.SAVE));
+        saveMenuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eventBus.post(Events.playlistSave);
+            }
+
+        });
+        fileMenu.add(saveMenuItem);
+
         JMenuItem exitMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.EXIT));
         exitMenuItem.addActionListener(CommonActionListener.SEND_CLOSE_EVENT.get(this));
         fileMenu.add(exitMenuItem);

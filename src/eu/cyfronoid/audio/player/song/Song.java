@@ -108,6 +108,10 @@ public class Song implements TableElement {
         return songProperties.getAuthor() + " - " + songProperties.getAlbum() + " - " + songProperties.getTitle();
     }
 
+    public File getFile() {
+        return file;
+    }
+
     public void close() throws IOException {
         if(in != null) {
             in.close();

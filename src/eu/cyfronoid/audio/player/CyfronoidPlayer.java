@@ -47,6 +47,7 @@ import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.framework.scheduler.Scheduler;
 import eu.cyfronoid.framework.scheduler.ThreadsDump;
 import eu.cyfronoid.framework.util.ExceptionHelper;
+import eu.cyfronoid.gui.file.ExtensionFilter;
 import eu.cyfronoid.gui.tree.TreeState;
 
 public class CyfronoidPlayer extends JFrame {
@@ -118,6 +119,7 @@ public class CyfronoidPlayer extends JFrame {
 
         playlistsPanel = new PlaylistsPanel();
         panel.add(playlistsPanel);
+        eventBus.register(playlistsPanel);
 
         tree = new MusicLibraryTree();
         JScrollPane musicLibraryScrollPane = new JScrollPane(tree);
@@ -200,6 +202,8 @@ public class CyfronoidPlayer extends JFrame {
     @Subscribe
     public void openPlaylist(PlaylistOpenDialogShowEvent event) {
         final JFileChooser fc = new JFileChooser();
+        fc.addChoosableFileFilter(ExtensionFilter.xml);
+        fc.setAcceptAllFileFilterUsed(false);
         int returnVal = fc.showOpenDialog(CyfronoidPlayer.this);
 
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -265,7 +269,11 @@ public class CyfronoidPlayer extends JFrame {
 
         @Override
         public String apply(Playlist input) {
-            return input.getFile().getAbsolutePath();
+            File file = input.getFile();
+            if(file == null) {
+                return null;
+            }
+            return file.getAbsolutePath();
         }
     }
 

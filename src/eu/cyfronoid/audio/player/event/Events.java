@@ -5,9 +5,23 @@ public class Events {
     public static final PlaylistSaveDialogShowEvent playlistSaveDialog = new PlaylistSaveDialogShowEvent();
     public static final NewPlaylistEvent newPlaylist = new NewPlaylistEvent();
     public static final ToggleAnalyzerPanel toggleAnalyzerPanel = new ToggleAnalyzerPanel();
+    public static final PlaylistSaveEvent playlistSave = new PlaylistSaveEvent();
+    public static final UpdateTabsLabelsEvent updateTabsLabels = new UpdateTabsLabelsEvent();
 
     private Events() {
 
+    }
+
+    public static class UpdateTabsLabelsEvent {
+        private UpdateTabsLabelsEvent() {
+
+        }
+    }
+
+    public static class PlaylistSaveEvent {
+        private PlaylistSaveEvent() {
+
+        }
     }
 
     public static class PlaylistSaveDialogShowEvent {

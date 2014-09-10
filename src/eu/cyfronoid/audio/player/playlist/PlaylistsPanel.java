@@ -15,7 +15,6 @@ import java.util.Set;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -29,10 +28,12 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.event.Events.UpdateTabsLabelsEvent;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.framework.util.ExceptionHelper;
@@ -47,7 +48,7 @@ public class PlaylistsPanel extends JTabbedPane {
     private BiMap<Integer, String> openedPlaylistTables = HashBiMap.create();
     private Set<String> unknownTabNames = Sets.newHashSet();
     private long unknownIndex = 0;
-    private JTable activeTable;
+    private PlaylistTable activeTable;
     private Map<Integer, Playlist> openedPlaylists = Maps.newHashMap();
 
     public PlaylistsPanel() throws IOException {
@@ -127,7 +128,7 @@ public class PlaylistsPanel extends JTabbedPane {
         PlaylistTable playlistTable;
         int tabCount = getTabCount();
         if(playlist.isPresent()) {
-            playlistTable = PlaylistTable.create();
+            playlistTable = PlaylistTable.create(playlist.get());
             playlistTable.setFiles(playlist.get().getOrderedSongs().values());
             name = establishName(playlist.get().getName());
             openedPlaylists.put(tabCount, playlist.get());
@@ -207,6 +208,12 @@ public class PlaylistsPanel extends JTabbedPane {
         Preconditions.checkArgument(tablePerTab.containsKey(selectedIndex));
         return Optional.of(tablePerTab.get(selectedIndex));
     }
+
+    @Subscribe
+    public void updateTabsLabels(UpdateTabsLabelsEvent event) {
+        updateTabsLabels();
+    }
+
 
     public void updateTabsLabels() {
         for(int i = 1; i < getTabCount(); ++i) {

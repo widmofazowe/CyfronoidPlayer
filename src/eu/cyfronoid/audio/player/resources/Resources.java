@@ -48,6 +48,7 @@ public enum Resources {
         public static final String NEW = "new";
         public static final String VIEW_MENU = "view";
         public static final String TOGGLE_SPECTRUM = "toggle_spectrum";
+        public static final String SAVE = "save";
     }
 
     public static Collection<ThirdPartyDependency> THIRD_PARTY_DEPENDENCIES = Collections.emptyList();
