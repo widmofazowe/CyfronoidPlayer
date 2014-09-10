@@ -23,7 +23,7 @@ import com.google.common.base.Optional;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 
 @XmlRootElement
-@XmlType(propOrder = {"windowDimension", "windowLocation", "musicLibraryDirectories", "gain", "actualViewSettings"})
+@XmlType(propOrder = {"windowDimension", "windowLocation", "musicLibraryDirectories", "gain", "actualViewSettings", "lastFmSettings"})
 public class Settings {
     private static final Logger logger = Logger.getLogger(Settings.class);
 
@@ -32,6 +32,7 @@ public class Settings {
     private ActualViewSettings actualViewSettings;
     private Dimension windowDimension;
     private Point windowLocation;
+    private LastFMSettings lastFmSettings;
 
     public List<String> getMusicLibraryDirectories() {
         return musicLibraryDirectories;
@@ -63,6 +64,12 @@ public class Settings {
         directories.add("MusicLibrary");
         settings.setMusicLibraryDirectories(directories);
         settings.setActualViewSettings(new ActualViewSettings());
+        LastFMSettings lastFmSettingsTest = new LastFMSettings();
+        lastFmSettingsTest.setUser("widmofazowe");
+        lastFmSettingsTest.setPassword("z");
+        lastFmSettingsTest.setKey("asdf");
+        lastFmSettingsTest.setSecret("rewq");
+        settings.setLastFmSettings(lastFmSettingsTest);
         JAXBContext jaxbContext;
         try {
             jaxbContext = JAXBContext.newInstance(Settings.class);
@@ -110,6 +117,14 @@ public class Settings {
 
     public Point getWindowLocation() {
         return windowLocation;
+    }
+
+    public LastFMSettings getLastFmSettings() {
+        return lastFmSettings;
+    }
+
+    public void setLastFmSettings(LastFMSettings lastFmSettings) {
+        this.lastFmSettings = lastFmSettings;
     }
 
 }

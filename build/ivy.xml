@@ -10,6 +10,7 @@
     <dependency org="com.googlecode.soundlibs" name="jlayer" rev="1.0.1-1"/>
     <dependency org="com.googlecode.soundlibs" name="mp3spi" rev="1.9.5-1"/>
     <dependency org="com.googlecode.soundlibs" name="soundlibs" rev="1.2"/>
+    <dependency org="de.u-mass" name="lastfm-java" rev="0.1.2"/>
     <dependency org="org.jfree" name="jfreechart" rev="1.0.19"/>
     <dependency org="org.quartz-scheduler" name="quartz" rev="2.2.1"/>
   </dependencies>

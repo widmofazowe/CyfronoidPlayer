@@ -25,6 +25,7 @@ import eu.cyfronoid.audio.player.event.NewSamplesEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
 import eu.cyfronoid.audio.player.event.SongFinishedEvent;
 import eu.cyfronoid.audio.player.event.UpdatePlayingProgressEvent;
+import eu.cyfronoid.audio.player.playback.PlaybackListener;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.gui.tableModel.TableElement;
 
@@ -204,13 +205,14 @@ public class MusicPlayer {
                 int nBytesRead = 0;
                 nBytesWritten = 0;
                 isRunning = true;
-
+                beforePlayback();
                 while(nBytesRead != -1 && running) {
 
                     checkForPaused();
                     nBytesRead = din.read(data, 0, data.length);
 
                     eventBus.post(new NewSamplesEvent(data));
+                    process(data);
 
                     if(nBytesRead != -1) {
                         nBytesWritten = line.write(data, 0, nBytesRead);
@@ -218,17 +220,36 @@ public class MusicPlayer {
                     }
                 }
 
-
                 line.drain();
                 line.stop();
                 line.close();
                 din.close();
                 isRunning = false;
                 if(running) {
+                    afterPlayback();
                     eventBus.post(new SongFinishedEvent(actualSong));
                 }
+
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            }
+        }
+
+        private void process(byte[] data) {
+            for(PlaybackListener playbackListener : playbackListeners) {
+                playbackListener.process(actualSong, data);
+            }
+        }
+
+        private void afterPlayback() {
+            for(PlaybackListener playbackListener : playbackListeners) {
+                playbackListener.onFinished(actualSong);
+            }
+        }
+
+        private void beforePlayback() {
+            for(PlaybackListener playbackListener : playbackListeners) {
+                playbackListener.onStarted(actualSong);
             }
         }
 

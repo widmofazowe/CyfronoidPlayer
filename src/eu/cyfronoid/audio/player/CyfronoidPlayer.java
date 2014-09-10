@@ -39,6 +39,7 @@ import eu.cyfronoid.audio.player.event.Events.ClosePlayerEvent;
 import eu.cyfronoid.audio.player.event.Events.NewPlaylistEvent;
 import eu.cyfronoid.audio.player.event.Events.PlaylistOpenDialogShowEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
+import eu.cyfronoid.audio.player.playback.LastFMScrobbler;
 import eu.cyfronoid.audio.player.playlist.Playlist;
 import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
 import eu.cyfronoid.audio.player.resources.ActualViewSettings;
@@ -157,6 +158,7 @@ public class CyfronoidPlayer extends JFrame {
         analyzerPanel = AnalyzerDialog.open();
         eventBus.register(analyzerPanel);
         musicPlayer.setAnalyzer(analyzerPanel);
+        musicPlayer.addPlaybackListener(new LastFMScrobbler());
     }
 
     private void setScreenProperties() {

@@ -79,6 +79,10 @@ public class Song implements TableElement {
         return songProperties.getTitle();
     }
 
+    public String getArtist() {
+        return songProperties.getAuthor();
+    }
+
     public int getSizeInBytes() {
         return songProperties.getSizeInBytes();
     }

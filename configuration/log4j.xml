@@ -10,11 +10,11 @@
   </appender>
   <appender name="RollingFile" class="org.apache.log4j.RollingFileAppender">
     <param name="file" value="logs/CyfronoidPlayer.log"/>
-    <param name="MaxFileSize" value="10000KB"/>
+    <param name="MaxFileSize" value="10MB"/>
     <!-- Keep one backup file -->
     <param name="MaxBackupIndex" value="5"/>
     <layout class="org.apache.log4j.PatternLayout">
-      <param name="ConversionPattern" value="%p %t %c - %m%n"/>
+      <param name="ConversionPattern" value="%d{yyyy.MM.dd HH:mm:ss.SSS} [%t] %p %t %c - %m%n"/>
     </layout>
   </appender>
   <root>
