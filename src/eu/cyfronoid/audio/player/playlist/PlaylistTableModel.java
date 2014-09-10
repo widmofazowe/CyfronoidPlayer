@@ -24,6 +24,7 @@ import eu.cyfronoid.audio.player.component.PlayingProgress.PlaybackProgressForma
 import eu.cyfronoid.audio.player.event.TreeSelectedEvent;
 import eu.cyfronoid.audio.player.song.Song;
 import eu.cyfronoid.audio.player.song.SongProperties.SongProperty;
+import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.framework.format.Format;
 import eu.cyfronoid.framework.util.FileUtil;
 import eu.cyfronoid.gui.tableModel.CommonTableModel;
@@ -64,7 +65,11 @@ public class PlaylistTableModel extends CommonTableModel {
     @Subscribe
     public void listChanged(TreeSelectedEvent e) throws IOException {
         if(isTreeSelectionListener) {
-            setFiles(e.getNode().getMP3Files());
+            List<File> files = Lists.newArrayList();
+            for(SongLibraryNode node : e.getNodes()) {
+                files.addAll(node.getMP3Files());
+            }
+            setFiles(files);
         }
     }
 

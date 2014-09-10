@@ -11,6 +11,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -22,7 +24,9 @@ import javax.swing.JScrollPane;
 
 import org.apache.log4j.Logger;
 
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
+import com.google.common.collect.FluentIterable;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
@@ -33,8 +37,9 @@ import eu.cyfronoid.audio.player.dsp.AnalyzerDialog;
 import eu.cyfronoid.audio.player.event.Events.NewPlaylistEvent;
 import eu.cyfronoid.audio.player.event.Events.PlaylistOpenDialogShowEvent;
 import eu.cyfronoid.audio.player.event.SongChangeEvent;
+import eu.cyfronoid.audio.player.playlist.Playlist;
 import eu.cyfronoid.audio.player.playlist.PlaylistsPanel;
-import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
+import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.resources.DefaultSettings;
 import eu.cyfronoid.audio.player.resources.Resources.Icons;
 import eu.cyfronoid.audio.player.resources.Resources.PropertyKey;
@@ -51,7 +56,7 @@ public class CyfronoidPlayer extends JFrame {
     private MusicPlayer musicPlayer = PlayerConfigurator.injector.getInstance(MusicPlayer.class);
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private MusicLibraryTree tree;
-    private AnalyzerDialog analyzerTest;
+    private AnalyzerDialog analyzerPanel;
     private PlaylistsPanel playlistsPanel;
     private Scheduler scheduler;
 
@@ -151,9 +156,9 @@ public class CyfronoidPlayer extends JFrame {
 
         addWindowListener(new PlayerWindowListener());
 
-        analyzerTest = AnalyzerDialog.open();
-        eventBus.register(analyzerTest);
-        musicPlayer.setAnalyzer(analyzerTest);
+        analyzerPanel = AnalyzerDialog.open();
+        eventBus.register(analyzerPanel);
+        musicPlayer.setAnalyzer(analyzerPanel);
     }
 
     @Subscribe
@@ -213,14 +218,19 @@ public class CyfronoidPlayer extends JFrame {
 
         @Override
         public void windowClosing(WindowEvent evt) {
-            Optional<Song> actualSong = musicPlayer.getActualSong();
-            ActualSelectionSettings actualSelections = PlayerConfigurator.SETTINGS.getActualSelections();
-            if(actualSelections == null) {
-                actualSelections = new ActualSelectionSettings();
-                PlayerConfigurator.SETTINGS.setActualSelections(actualSelections);
+            Collection<Playlist> openedPlaylists = playlistsPanel.getOpenedPlaylists();
+            ActualViewSettings viewSettings = getViewSettings();
+            if(!playlistsPanel.areAllSaved()) {
+                logger.debug("There are unsaved playlists.");
             }
+            List<String> files = FluentIterable.from(openedPlaylists).transform(PlaylistsPath.INSTANCE).toList();
+            viewSettings.setOpenedPlaylists(files);
+            viewSettings.setSelectedTab(playlistsPanel.getSelectedIndex());
+
+            Optional<Song> actualSong = musicPlayer.getActualSong();
+
             if(actualSong.isPresent()) {
-                actualSelections.setSelectedSong(actualSong.get());
+                viewSettings.setSelectedSong(actualSong.get());
             }
 //            TreePath selectionPath = tree.getSelectionPath();
 //
@@ -229,7 +239,8 @@ public class CyfronoidPlayer extends JFrame {
 //            }
 
             TreeState state = new TreeState(tree);
-            actualSelections.setExpansionState(state.getExpansionState());
+            viewSettings.setExpansionState(state.getExpansionState());
+
             PlayerConfigurator.SETTINGS.setWindowDimension(getSize());
             PlayerConfigurator.saveSettings();
 
@@ -238,6 +249,24 @@ public class CyfronoidPlayer extends JFrame {
             System.exit(0);
         }
 
+        private ActualViewSettings getViewSettings() {
+            ActualViewSettings viewSettings = PlayerConfigurator.SETTINGS.getActualViewSettings();
+            if(viewSettings == null) {
+                viewSettings = new ActualViewSettings();
+                PlayerConfigurator.SETTINGS.setActualViewSettings(viewSettings);
+            }
+            return viewSettings;
+        }
+
+    }
+
+    private static enum PlaylistsPath implements Function<Playlist, String> {
+        INSTANCE;
+
+        @Override
+        public String apply(Playlist input) {
+            return input.getFile().getAbsolutePath();
+        }
     }
 
 

@@ -26,34 +26,42 @@ import eu.cyfronoid.audio.player.song.Song;
 
 public class PlaylistTable extends JTable {
     private static final long serialVersionUID = -1614591239377223113L;
-    private PlaylistTableModel playlist;
+    private PlaylistTableModel playlistTableModel;
     private EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
     private boolean isTreeSelectionListener;
     private boolean hasUnsavedModifications = false;
     private String tableName;
 
-    public PlaylistTable() {
-        this(false);
+    public static PlaylistTable createSelectionListener() {
+        return new PlaylistTable(true);
     }
 
-    public PlaylistTable(boolean isTreeSelectionListener) {
+    public static PlaylistTable create() {
+        return new PlaylistTable(false);
+    }
+
+    private PlaylistTable(boolean isTreeSelectionListener) {
         this.isTreeSelectionListener = isTreeSelectionListener;
-        playlist = new PlaylistTableModel(isTreeSelectionListener);
+        prepareTableModel(isTreeSelectionListener);
+    }
+
+    private void prepareTableModel(boolean isTreeSelectionListener) {
+        playlistTableModel = new PlaylistTableModel(isTreeSelectionListener);
         if(isTreeSelectionListener) {
-            eventBus.register(playlist);
+            eventBus.register(playlistTableModel);
         }
-        setModel(playlist);
+        setModel(playlistTableModel);
         addMouseListener(new PlaylistPopupListener());
     }
 
     public void setFiles(Collection<File> files) throws IOException {
         setHasUnsavedModifications(true);
-        playlist.setFiles(files);
+        playlistTableModel.setFiles(files);
     }
 
     public void addFiles(Collection<File> files) throws IOException {
         setHasUnsavedModifications(true);
-        playlist.addFiles(files);
+        playlistTableModel.addFiles(files);
     }
 
     public void save() {
@@ -68,7 +76,7 @@ public class PlaylistTable extends JTable {
             return;
         }
         int nextIndex = modelElementIndex.get()+1;
-        if(nextIndex < playlist.getRowCount()) {
+        if(nextIndex < playlistTableModel.getRowCount()) {
             changeSelection(getSelectedRow()+1, getSelectedColumn(), false, false);
             Song song = getSong(nextIndex);
             eventBus.post(new SongChangeEvent(song));
@@ -134,7 +142,7 @@ public class PlaylistTable extends JTable {
     }
 
     private Song getSong(int i) {
-        return (Song) playlist.get(i);
+        return (Song) playlistTableModel.get(i);
     }
 
     private Optional<Integer> getModelElementIndex() {

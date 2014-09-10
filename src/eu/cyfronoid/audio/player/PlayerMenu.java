@@ -18,6 +18,44 @@ public class PlayerMenu extends JMenuBar {
     private final EventBus eventBus = PlayerConfigurator.injector.getInstance(EventBus.class);
 
     public PlayerMenu() {
+        createFileMenu();
+
+        createViewMenu();
+
+        createHelpMenu();
+    }
+
+    private void createViewMenu() {
+        JMenu viewMenu = new JMenu(PlayerConfigurator.getLabelFor(PropertyKey.VIEW_MENU));
+        add(viewMenu);
+
+        JMenuItem toggleSpectrumAnalyzerMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.TOGGLE_SPECTRUM));
+        toggleSpectrumAnalyzerMenuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                eventBus.post(Events.toggleAnalyzerPanel);
+            }
+        });
+        viewMenu.add(toggleSpectrumAnalyzerMenuItem);
+    }
+
+    private void createHelpMenu() {
+        JMenu helpMenu = new JMenu(PlayerConfigurator.getLabelFor(PropertyKey.HELP_MENU));
+        add(helpMenu);
+
+        JMenuItem aboutMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.ABOUT));
+        aboutMenuItem.addActionListener(new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                PlayerConfigurator.ABOUT_DIALOG.open();
+            }
+        });
+        helpMenu.add(aboutMenuItem);
+    }
+
+    private void createFileMenu() {
         JMenu fileMenu = new JMenu(PlayerConfigurator.getLabelFor(PropertyKey.FILE_MENU));
         add(fileMenu);
 
@@ -46,18 +84,5 @@ public class PlayerMenu extends JMenuBar {
         JMenuItem exitMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.EXIT));
         exitMenuItem.addActionListener(CommonActionListener.SEND_CLOSE_EVENT.get(this));
         fileMenu.add(exitMenuItem);
-
-        JMenu helpMenu = new JMenu(PlayerConfigurator.getLabelFor(PropertyKey.HELP_MENU));
-        add(helpMenu);
-
-        JMenuItem aboutMenuItem = new JMenuItem(PlayerConfigurator.getLabelFor(PropertyKey.ABOUT));
-        aboutMenuItem.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                PlayerConfigurator.ABOUT_DIALOG.open();
-            }
-        });
-        helpMenu.add(aboutMenuItem);
     }
 }

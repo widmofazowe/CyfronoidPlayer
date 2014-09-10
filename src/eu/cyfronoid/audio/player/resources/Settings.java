@@ -22,13 +22,13 @@ import com.google.common.base.Optional;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 
 @XmlRootElement
-@XmlType(propOrder = {"windowDimension", "musicLibraryDirectories", "gain", "actualSelections"})
+@XmlType(propOrder = {"windowDimension", "musicLibraryDirectories", "gain", "actualViewSettings"})
 public class Settings {
     private static final Logger logger = Logger.getLogger(Settings.class);
 
     private List<String> musicLibraryDirectories;
     private double gain;
-    private ActualSelectionSettings actualSelections;
+    private ActualViewSettings actualViewSettings;
     private Dimension windowDimension;
 
     public List<String> getMusicLibraryDirectories() {
@@ -60,7 +60,7 @@ public class Settings {
         List<String> directories = new ArrayList<>();
         directories.add("MusicLibrary");
         settings.setMusicLibraryDirectories(directories);
-        settings.setActualSelections(new ActualSelectionSettings());
+        settings.setActualViewSettings(new ActualViewSettings());
         JAXBContext jaxbContext;
         try {
             jaxbContext = JAXBContext.newInstance(Settings.class);
@@ -81,13 +81,13 @@ public class Settings {
         this.gain = gain;
     }
 
-    public ActualSelectionSettings getActualSelections() {
-        return actualSelections;
+    public ActualViewSettings getActualViewSettings() {
+        return actualViewSettings;
     }
 
     @XmlElement
-    public void setActualSelections(ActualSelectionSettings actualSelections) {
-        this.actualSelections = actualSelections;
+    public void setActualViewSettings(ActualViewSettings actualSelections) {
+        this.actualViewSettings = actualSelections;
     }
 
     public Dimension getWindowDimension() {

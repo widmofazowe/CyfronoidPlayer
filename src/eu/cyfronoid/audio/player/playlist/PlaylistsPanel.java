@@ -7,6 +7,8 @@ import java.awt.dnd.DropTargetAdapter;
 import java.awt.dnd.DropTargetDropEvent;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -31,12 +33,13 @@ import com.google.common.eventbus.EventBus;
 import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.MusicLibraryTree;
 import eu.cyfronoid.audio.player.component.PlaylistTable;
+import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.framework.util.ExceptionHelper;
-import eu.cyfronoid.framework.validator.annotation.NotNull;
 
 public class PlaylistsPanel extends JTabbedPane {
     private static final long serialVersionUID = -1380190314932473388L;
+    public static final String TREE_SELECTION_LISTENER_NAME = "Selection Listener";
     private static final Logger logger = Logger.getLogger(PlaylistsPanel.class);
     private static final String NEW_TAB_PREFIX = "New Tab ";
     private Map<Integer, PlaylistTable> tablePerTab = Maps.newHashMap();
@@ -45,11 +48,12 @@ public class PlaylistsPanel extends JTabbedPane {
     private Set<String> unknownTabNames = Sets.newHashSet();
     private long unknownIndex = 0;
     private JTable activeTable;
+    private Map<Integer, Playlist> openedPlaylists = Maps.newHashMap();
 
     public PlaylistsPanel() throws IOException {
         super(JTabbedPane.TOP);
         setAutoscrolls(true);
-        createTab(PlaylistTabParameters.createSelectionListener());
+        createTreeSelectionListenerTab();
         eventBus.register(tablePerTab.get(0));  // above statement guaranteed that there is at leased one item
         activeTable = tablePerTab.get(0);
 
@@ -65,6 +69,38 @@ public class PlaylistsPanel extends JTabbedPane {
         });
 
         new MusicTreeDropTargetListener(this);
+
+        openPlaylistsFromSettings();
+    }
+
+    private void openPlaylistsFromSettings() {
+        ActualViewSettings actualViewSettings = PlayerConfigurator.SETTINGS.getActualViewSettings();
+        if(actualViewSettings == null) {
+            return;
+        }
+        List<String> openedPlaylistsPaths = actualViewSettings.getOpenedPlaylists();
+        if(openedPlaylistsPaths == null) {
+            return;
+        }
+
+        int i = 0;
+        int selectedTab = actualViewSettings.getSelectedTab();
+        for(String path : openedPlaylistsPaths) {
+            try {
+                openTab(new File(path));
+                if(selectedTab > i) {
+                    i++;
+                }
+            } catch (IOException e) {
+                logger.warn(ExceptionHelper.getStackTrace(e));
+            }
+        }
+
+        setSelectedIndex(i);
+    }
+
+    private void createTreeSelectionListenerTab() throws IOException {
+        createTab(Optional.<Playlist>absent());
     }
 
     public void openTab(File file) throws IOException {
@@ -78,23 +114,34 @@ public class PlaylistsPanel extends JTabbedPane {
             JOptionPane.showMessageDialog(this, "Cannot open two playlists with the same name " + name);
             return;
         }
-        createTab(new PlaylistTabParameters(playlist.get().getOrderedSongs().values(), name));
+        playlist.get().setFile(file);
+        createTab(playlist);
     }
 
     public void createNewEmptyTab() throws IOException {
-        createTab(PlaylistTabParameters.EMPTY_TAB);
+        createTab(Optional.of(new Playlist()));
     }
 
-    private void createTab(@NotNull PlaylistTabParameters playlistTabParameters) throws IOException {
-        Preconditions.checkNotNull(playlistTabParameters);
-        PlaylistTable playlistTable = new PlaylistTable(playlistTabParameters.isTreeSelectionListener());
-        playlistTable.setFiles(playlistTabParameters.getFiles());
+    private void createTab(Optional<Playlist> playlist) throws IOException {
+        String name;
+        PlaylistTable playlistTable;
+        int tabCount = getTabCount();
+        if(playlist.isPresent()) {
+            playlistTable = PlaylistTable.create();
+            playlistTable.setFiles(playlist.get().getOrderedSongs().values());
+            name = establishName(playlist.get().getName());
+            openedPlaylists.put(tabCount, playlist.get());
+        } else {
+            playlistTable = PlaylistTable.createSelectionListener();
+            name = TREE_SELECTION_LISTENER_NAME;
+        }
+
         JScrollPane scrollPane = new JScrollPane(playlistTable);
         scrollPane.setBorder(null);
         scrollPane.setToolTipText("");
-        int tabCount = getTabCount();
+
         tablePerTab.put(tabCount, playlistTable);
-        String name = establishName(playlistTabParameters.getName());
+
         playlistTable.setTableName(name);
         openedPlaylistTables.put(tabCount, name);
         addTab(name, null, scrollPane, null);
@@ -104,9 +151,9 @@ public class PlaylistsPanel extends JTabbedPane {
         setSelectedIndex(tabCount);
     }
 
-    private String establishName(Optional<String> name) {
-        if(name.isPresent()) {
-            return name.get();
+    private String establishName(String name) {
+        if(name != null) {
+            return name;
         }
 
         String newName;
@@ -169,6 +216,19 @@ public class PlaylistsPanel extends JTabbedPane {
 
     private void updateTabLabel(int i) {
         setTitleAt(i, tablePerTab.get(i).toString());
+    }
+
+    public Collection<Playlist> getOpenedPlaylists() {
+        return openedPlaylists.values();
+    }
+
+    public boolean areAllSaved() {
+        for(PlaylistTable playlistTable : tablePerTab.values()) {
+            if(playlistTable.hasUnsavedModifications()) {
+                return false;
+            }
+        }
+        return true;
     }
 
 }

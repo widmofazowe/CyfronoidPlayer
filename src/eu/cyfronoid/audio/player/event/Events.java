@@ -4,6 +4,7 @@ public class Events {
     public static final PlaylistOpenDialogShowEvent playlistOpenDialog = new PlaylistOpenDialogShowEvent();
     public static final PlaylistSaveDialogShowEvent playlistSaveDialog = new PlaylistSaveDialogShowEvent();
     public static final NewPlaylistEvent newPlaylist = new NewPlaylistEvent();
+    public static final ToggleAnalyzerPanel toggleAnalyzerPanel = new ToggleAnalyzerPanel();
 
     private Events() {
 
@@ -23,6 +24,12 @@ public class Events {
 
     public static class NewPlaylistEvent {
         private NewPlaylistEvent() {
+
+        }
+    }
+
+    public static class ToggleAnalyzerPanel {
+        private ToggleAnalyzerPanel() {
 
         }
     }

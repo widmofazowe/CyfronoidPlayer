@@ -1,15 +1,17 @@
 package eu.cyfronoid.audio.player.event;
 
+import java.util.List;
+
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 
 public class TreeSelectedEvent {
-    SongLibraryNode node;
+    List<SongLibraryNode> nodes;
 
-    public TreeSelectedEvent(SongLibraryNode node) {
-        this.node = node;
+    public TreeSelectedEvent(List<SongLibraryNode> nodes) {
+        this.nodes = nodes;
     }
 
-    public SongLibraryNode getNode() {
-        return node;
+    public List<SongLibraryNode> getNodes() {
+        return nodes;
     }
 }

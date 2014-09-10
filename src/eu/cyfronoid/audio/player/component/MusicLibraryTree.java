@@ -22,7 +22,7 @@ import eu.cyfronoid.audio.player.PlayerConfigurator;
 import eu.cyfronoid.audio.player.component.model.SongTreeModel;
 import eu.cyfronoid.audio.player.event.TreeSelectedEvent;
 import eu.cyfronoid.audio.player.event.UpdateTreeEvent;
-import eu.cyfronoid.audio.player.resources.ActualSelectionSettings;
+import eu.cyfronoid.audio.player.resources.ActualViewSettings;
 import eu.cyfronoid.audio.player.song.library.SongLibrary;
 import eu.cyfronoid.audio.player.song.library.SongLibraryNode;
 import eu.cyfronoid.gui.tree.TreeState;
@@ -59,7 +59,7 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
 
             @Override
             public void run() {
-                ActualSelectionSettings actualSelections = PlayerConfigurator.SETTINGS.getActualSelections();
+                ActualViewSettings actualSelections = PlayerConfigurator.SETTINGS.getActualViewSettings();
                 if(actualSelections != null) {
                     TreeState state = new TreeState(getMusicLibraryTree());
                     state.setExpansionState(actualSelections.getExpansionState());
@@ -74,13 +74,16 @@ public class MusicLibraryTree extends JTree implements TreeSelectionListener {
 
     @Override
     public void valueChanged(TreeSelectionEvent e) {
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) this.getLastSelectedPathComponent();
-        if (node == null) {
-            return;
+        TreePath[] paths = getSelectionPaths();
+        if(paths != null) {
+            List<SongLibraryNode> selected = Lists.newArrayList();
+            for(int i = 0; i < paths.length; i++) {
+                DefaultMutableTreeNode next = (DefaultMutableTreeNode) paths[i].getLastPathComponent();
+                SongLibraryNode nodeObject = (SongLibraryNode) next.getUserObject();
+                selected.add(nodeObject);
+            }
+            eventBus.post(new TreeSelectedEvent(selected));
         }
-
-        SongLibraryNode nodeObject = (SongLibraryNode) node.getUserObject();
-        eventBus.post(new TreeSelectedEvent(nodeObject));
     }
 
     private MusicLibraryTree getMusicLibraryTree() {

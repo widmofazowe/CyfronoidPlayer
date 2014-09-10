@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
+import eu.cyfronoid.audio.player.event.Events.ToggleAnalyzerPanel;
 import eu.cyfronoid.audio.player.event.NewSamplesEvent;
 
 public class AnalyzerDialog extends JDialog {
@@ -14,11 +15,11 @@ public class AnalyzerDialog extends JDialog {
     private static final Logger logger = Logger.getLogger(AnalyzerDialog.class);
     private boolean dspEnabled = true;
     private SpectrumTimeAnalyzer analyzer;
+    private static AnalyzerDialog dialog;
 
     public static AnalyzerDialog open() {
-        AnalyzerDialog dialog = new AnalyzerDialog();
+        dialog = new AnalyzerDialog();
         dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        dialog.setVisible(true);
         return dialog;
     }
 
@@ -36,6 +37,11 @@ public class AnalyzerDialog extends JDialog {
     public void reciveSamples(NewSamplesEvent event) {
         byte[] pcmdata = event.getSamples();
         analyzer.writeDSP(pcmdata);
+    }
+
+    @Subscribe
+    public void receive(ToggleAnalyzerPanel event) {
+        dialog.setVisible(!dialog.isVisible());
     }
 
     private void setAnalyzerPanel() {

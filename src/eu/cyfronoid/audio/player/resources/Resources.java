@@ -46,6 +46,8 @@ public enum Resources {
         public static final String PAUSE = "pause";
         public static final String OPEN = "open";
         public static final String NEW = "new";
+        public static final String VIEW_MENU = "view";
+        public static final String TOGGLE_SPECTRUM = "toggle_spectrum";
     }
 
     public static Collection<ThirdPartyDependency> THIRD_PARTY_DEPENDENCIES = Collections.emptyList();
@@ -58,13 +60,13 @@ public enum Resources {
         PAUSE_ARROW("pause7.png"),
         ;
 
-        private static final String DIR = "src/resources/icons/";
+        private static final String DIR = "/resources/icons/";
         private final String path;
         private final ImageIcon imageIcon;
 
         Icons(String iconName) {
             path = DIR + iconName;
-            imageIcon = new ImageIcon(path);
+            imageIcon = new ImageIcon(Resources.class.getResource(path));
         }
 
         public ImageIcon getImageIcon() {

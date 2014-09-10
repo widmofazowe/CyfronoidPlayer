@@ -10,18 +10,29 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
 
 import org.apache.log4j.Logger;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.Maps;
+
+import eu.cyfronoid.framework.util.ExceptionHelper;
 
 @XmlRootElement
-@XmlType(propOrder = {"name", "orderedSongs"})
+@XmlType(propOrder = {"name", "orderedSongs", "file"})
 public class Playlist {
     private final static Logger logger = Logger.getLogger(Playlist.class);
+    public static final Playlist EMPTY_PLAYLIST = new Playlist();
     private String name;
     private SortedMap<Integer, File> orderedSongs;
+    @XmlTransient
+    private File file;
+
+    public Playlist() {
+        orderedSongs = Maps.newTreeMap();
+    }
 
     public String getName() {
         return name;
@@ -58,7 +69,7 @@ public class Playlist {
             playlist = (Playlist) jaxbUnmarshaller.unmarshal(file);
             logger.debug("Unmarchalled: " + file.getPath());
         } catch (JAXBException e) {
-            logger.error(e);
+            logger.error(ExceptionHelper.getStackTrace(e));
         }
         return Optional.fromNullable(playlist);
     }
@@ -82,5 +93,13 @@ public class Playlist {
         } catch (JAXBException e) {
             logger.error(e);
         }
+    }
+
+    public File getFile() {
+        return file;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
     }
 }
