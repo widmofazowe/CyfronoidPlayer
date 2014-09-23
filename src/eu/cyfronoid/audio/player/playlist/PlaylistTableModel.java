@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableList.Builder;
@@ -97,7 +98,7 @@ public class PlaylistTableModel extends CommonTableModel {
 
 
     public static List<TableElement> tranformToModel(Collection<File> files) {
-        return Lists.newArrayList(FluentIterable.from(files).transform(new FileToSongTransform<TableElement>()).toList());
+        return Lists.newArrayList(FluentIterable.from(files).transform(new FileToSongTransform<TableElement>()).filter(Predicates.notNull()).toList());
     }
 
     private static class FileToSongTransform<T> implements Function<File, T> {
